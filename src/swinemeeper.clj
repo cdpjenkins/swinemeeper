@@ -1,9 +1,6 @@
 ;; TODO number of swines remaining
 ;; TODO let you know when game ends, either in success or failure
-;; TODO don't let you hit a swine on first go
 ;; TODO configure dimensions + number of swines
-;; TODO move click callback functions into top level functions of their own
-
 ;; TODO turn the view into a defstruct that includes the view itself and
 ;;      also board, num-swines, game-state (:pre-game, :playing, :lost, :won)
 ;; TODO timer
@@ -20,7 +17,7 @@
  '(java.awt.image BufferedImage)
  '(java.io File)
  '(javax.imageio ImageIO)
- '(javax.swing JFrame JButton JPanel))
+ '(javax.swing JButton JFrame JLabel JPanel))
 
 ;; Constants
 
@@ -28,7 +25,9 @@
 (def height 12)
 (def square-width 50)
 (def square-height 50)
-(def num-swines 15)
+(def num-swines 16)
+
+(declare board-ref)
 
 ;; Mappings screen-coords <--> board-coords
 (defn screen-to-board [ [x y] ]
@@ -47,8 +46,6 @@
                         y (range height)
                         :when (not (= [x y] [ex ey]))]
                     [x y])))))
-
-;(def swines (make-swines width height num-swines))
 
 (defn is-swine? [pos]
   (contains? @board-ref pos))
@@ -71,6 +68,7 @@
 (defn num-surrounding [x y]
   (count (filter is-swine? (neighbours x y))))
 
+
 (defn try-square [x y]
   (if (is-swine? [x y])
     :swine
@@ -90,10 +88,6 @@
   (vec (for [y (range height)]
     (vec (for [x (range width)]
       :unknown)))))
-
-(def board-ref (ref nil))
-;(def state-ref (ref :pre-game))
-(def view-ref (ref (make-empty-view)))
 
 (defn view-square-at [view [x y]]
   ; TODO I really want to implement view as a map instead in the future
@@ -125,7 +119,27 @@
       (print (view-square-str view x y)))
     (println)))
 
-; View (atom) manipulation functions
+(defn countp [view p]
+  "Count the number of view squares that match a predicate"
+  (count
+   (for [y (range height)
+        x (range width)
+      :when (p (view-square-at view [x y]))]
+     nil)))
+
+(defn count-marked [view]
+  (countp view #(= % :marked)))
+
+(defn count-revealed [view]
+  (countp view #(number? %)))
+
+(defn count-swines [view]
+  (countp view #(= % :swine)))
+
+(defn num-swines-unmarked [view]
+  (- num-swines (count-marked view)))
+
+; View (ref) manipulation functions
 
 (defn uncover [view coords]
   (if (= coords [])
@@ -168,19 +182,10 @@
 	  view))
       view)))
 
-
-;(defstruct game-state :state :swines :view)
-;
-;(defn make-game-state []
-;  (struct-map game-state
-;    :state  (ref :pre-game)
-;    :swines (ref nil)
-;    :view   (ref (make-empty-view))))
-;
-;(def game-state {state  (ref :pre-game)
-;                 swines 
-;                 view   (ref (make-empty-view))})
-
+;; Refs
+(def board-ref (ref nil))
+(def state-ref (ref :pre-game))
+(def view-ref (ref (make-empty-view)))
 
 ;; GUI stuff
 
@@ -190,25 +195,29 @@
   (dosync
    (if (nil? @board-ref)
      (ref-set board-ref (make-swines width height num-swines coords)))
-   (alter view-ref uncover [coords])))
-;  (swap! view-atom uncover [coords]))
+   (alter view-ref uncover [coords])
+   (when (> (count-swines @view-ref) 0)
+     ; If we have revealed a single swine then the game is lost!
+     ; TODO what are we going to do when the game is lost? Hmm!?!?!
+     nil))
+  (when  (> (count-swines @view-ref) 0)
+    (println "You lose, sucker!!!")))
+
 
 (defn double-click [coords]
   (dosync
    (alter view-ref double-dude coords)))
-;  (swap! view-atom double-dude coords))
 
 (defn right-click [coords]
   (dosync
-   (alter view-ref mark coords)))
-;  (swap! view-atom mark coords))
+   (alter view-ref mark coords))
+  (println "Swines remaining: " (num-swines-unmarked @view-ref)))
 
 (defn make-action-listener [f]
   (proxy [ActionListener] []
     (actionPerformed [e] (f e))))
 
 (defn load-image [filename]
-;  (ImageIO/read(File. filename)))
   (ImageIO/read (ClassLoader/getSystemResource filename)))
 
 (defn load-images []
@@ -231,6 +240,11 @@
 	square ((view y) x)]
     (.drawImage g (images square) sx sy square-width square-height 
 		Color/BLACK nil)))
+
+;(defn make-remaining-swines-panel []
+;  (let [label (JLabel. "Husston")
+;        panel (proxy [JPanel] []
+                
 
 (defn make-board-panel []
   (let [pointless-panel (JPanel.)
@@ -261,16 +275,19 @@
 
     panel))
 
-(defn make-frame []
+(defn make-frame [close-action]
   (let [frame (JFrame. "Swine Meeper")]
     (doto (.getContentPane frame)
       (.add (make-board-panel)))
     (doto frame
-;      (.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE)
+      (.setDefaultCloseOperation close-action)
       (.pack)
       (.show))))
 
 (defn -main []
-  (make-frame))
+  (make-frame JFrame/EXIT_ON_CLOSE))
 
-(-main)
+(defn swank-main []
+  (make-frame JFrame/DISPOSE_ON_CLOSE))
+
+(swank-main)
