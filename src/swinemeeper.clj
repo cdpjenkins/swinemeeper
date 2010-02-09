@@ -1,4 +1,3 @@
-;; TODO number of swines remaining
 ;; TODO let you know when game ends, either in success or failure
 ;; TODO configure dimensions + number of swines
 ;; TODO turn the view into a defstruct that includes the view itself and
@@ -17,7 +16,7 @@
  '(java.awt.image BufferedImage)
  '(java.io File)
  '(javax.imageio ImageIO)
- '(javax.swing JButton JFrame JLabel JPanel))
+ '(javax.swing BoxLayout JButton JFrame JLabel JPanel))
 
 ;; Constants
 
@@ -28,6 +27,7 @@
 (def num-swines 16)
 
 (declare board-ref)
+(declare remaining-swines-ref)
 
 ;; Mappings screen-coords <--> board-coords
 (defn screen-to-board [ [x y] ]
@@ -177,15 +177,22 @@
 	(if (= square
 	       (+ (num-unknown-neighbours view [x y])
 		  (num-marked-neighbours view [x y])))
-	  (mark-list view (filter #(= (view-square-at view %) :unknown)
-				  (neighbours x y)))
+          view
+          ; TODO get rid of this properly
+;	  (mark-list view (filter #(= (view-square-at view %) :unknown)
+;				  (neighbours x y)))
 	  view))
       view)))
+
+
+(defn format-remaining-swines []
+  (str "Remaining Swines: " @remaining-swines-ref))
 
 ;; Refs
 (def board-ref (ref nil))
 (def state-ref (ref :pre-game))
 (def view-ref (ref (make-empty-view)))
+(def remaining-swines-ref (ref num-swines))
 
 ;; GUI stuff
 
@@ -206,12 +213,15 @@
 
 (defn double-click [coords]
   (dosync
+   ; TODO given that it is possible for a double click to cause a flag to be
+   ; put onto the board, we ought to be ready to update the remaining-swines-ref
+   ; here too
    (alter view-ref double-dude coords)))
 
 (defn right-click [coords]
   (dosync
-   (alter view-ref mark coords))
-  (println "Swines remaining: " (num-swines-unmarked @view-ref)))
+   (alter view-ref mark coords)
+   (ref-set remaining-swines-ref (num-swines-unmarked @view-ref))))
 
 (defn make-action-listener [f]
   (proxy [ActionListener] []
@@ -241,9 +251,15 @@
     (.drawImage g (images square) sx sy square-width square-height 
 		Color/BLACK nil)))
 
-;(defn make-remaining-swines-panel []
-;  (let [label (JLabel. "Husston")
-;        panel (proxy [JPanel] []
+(defn make-remaining-swines-panel []
+  (let [label (JLabel. (format-remaining-swines))
+        panel (JPanel.)]
+    (.add panel label)
+    (add-watch remaining-swines-ref
+               "remaining-swines"
+               (fn [k r o n]
+                 (.setText label (format-remaining-swines))))
+    panel))
                 
 
 (defn make-board-panel []
@@ -275,10 +291,17 @@
 
     panel))
 
+(defn make-main-panel []
+  (let [panel (JPanel.)]
+    (doto panel
+      (.setLayout (BoxLayout. panel BoxLayout/Y_AXIS))
+      (.add (make-board-panel))
+      (.add (make-remaining-swines-panel)))))
+
 (defn make-frame [close-action]
   (let [frame (JFrame. "Swine Meeper")]
     (doto (.getContentPane frame)
-      (.add (make-board-panel)))
+      (.add (make-main-panel)))
     (doto frame
       (.setDefaultCloseOperation close-action)
       (.pack)
@@ -290,4 +313,5 @@
 (defn swank-main []
   (make-frame JFrame/DISPOSE_ON_CLOSE))
 
-(swank-main)
+;(swank-main)
+
