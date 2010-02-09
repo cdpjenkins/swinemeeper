@@ -22,8 +22,8 @@
 
 (def width 12)
 (def height 12)
-(def square-width 50)
-(def square-height 50)
+(def square-width 32)
+(def square-height 32)
 (def num-swines 16)
 
 (declare board-ref)
