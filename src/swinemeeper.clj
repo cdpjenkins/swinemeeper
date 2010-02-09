@@ -26,8 +26,8 @@
 
 (def width 12)
 (def height 12)
-(def square-width 36)
-(def square-height 36)
+(def square-width 50)
+(def square-height 50)
 (def num-swines 15)
 
 ;; Mappings screen-coords <--> board-coords
@@ -40,14 +40,18 @@
 ;; Board functions
 
 (defn make-swines [width height num-swines & [ [ex ey]] ]
+  (println [ex ey])
   (set
    (take num-swines
-	 (shuffle (for [x (range width) y (range height)] [x y])))))
+	 (shuffle (for [x (range width)
+                        y (range height)
+                        :when (not (= [x y] [ex ey]))]
+                    [x y])))))
 
-(def swines (make-swines width height num-swines))
+;(def swines (make-swines width height num-swines))
 
 (defn is-swine? [pos]
-  (contains? swines pos))
+  (contains? @board-ref pos))
 
 (defn neighbours [x y]
   (filter
@@ -87,7 +91,9 @@
     (vec (for [x (range width)]
       :unknown)))))
 
-(def view-atom (atom (make-empty-view)))
+(def board-ref (ref nil))
+;(def state-ref (ref :pre-game))
+(def view-ref (ref (make-empty-view)))
 
 (defn view-square-at [view [x y]]
   ; TODO I really want to implement view as a map instead in the future
@@ -162,18 +168,40 @@
 	  view))
       view)))
 
+
+;(defstruct game-state :state :swines :view)
+;
+;(defn make-game-state []
+;  (struct-map game-state
+;    :state  (ref :pre-game)
+;    :swines (ref nil)
+;    :view   (ref (make-empty-view))))
+;
+;(def game-state {state  (ref :pre-game)
+;                 swines 
+;                 view   (ref (make-empty-view))})
+
+
 ;; GUI stuff
 
 ;  GUI event handlers
 
 (defn left-click [coords]
-  (swap! view-atom uncover [coords]))
+  (dosync
+   (if (nil? @board-ref)
+     (ref-set board-ref (make-swines width height num-swines coords)))
+   (alter view-ref uncover [coords])))
+;  (swap! view-atom uncover [coords]))
 
 (defn double-click [coords]
-  (swap! view-atom double-dude coords))
+  (dosync
+   (alter view-ref double-dude coords)))
+;  (swap! view-atom double-dude coords))
 
 (defn right-click [coords]
-  (swap! view-atom mark coords))
+  (dosync
+   (alter view-ref mark coords)))
+;  (swap! view-atom mark coords))
 
 (defn make-action-listener [f]
   (proxy [ActionListener] []
@@ -213,7 +241,7 @@
 		(paintComponent [g]
 		  (doseq [y (range height)
 			  x (range width)]
-		    (paint-square g x y pointless-panel @view-atom images))))]
+		    (paint-square g x y pointless-panel @view-ref images))))]
     (doto panel
       (.addMouseListener
        (proxy [MouseAdapter] []
@@ -238,11 +266,11 @@
     (doto (.getContentPane frame)
       (.add (make-board-panel)))
     (doto frame
+;      (.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE)
       (.pack)
       (.show))))
 
 (defn -main []
-  (println "Totaly in the main method")
   (make-frame))
 
-;(-main)
+(-main)
