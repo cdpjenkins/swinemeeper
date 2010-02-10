@@ -1,7 +1,10 @@
-;; TODO configure dimensions + number of swines
+;; TODO configure dimensions + number of swines by popping up some kind of
+;;      dialog or something
 ;; TODO timer
 ;; TODO high score table
 ;; TODO turn it into an applet
+;; TODO push all the state into game state-struct object
+
 
 (ns swinemeeper
   (:use clojure.contrib.seq-utils)
@@ -215,7 +218,6 @@
         view)
       view)))
 
-
 (defn format-remaining-swines []
   (str "Remaining Swines: " @remaining-swines-ref))
 
@@ -224,6 +226,12 @@
     (vec (for [x (iterate-width)]
       (try-square x y))))))
 
+(defn fully-reveal-board-on-win []
+  (vec (for [y (iterate-height)]
+    (vec (for [x (iterate-width)]
+      (let [square (try-square x y)]
+        (if (= square :swine) :marked square)))))))
+          
 
 ;; Refs
 (def board-ref (ref nil))
@@ -242,7 +250,7 @@
   within a transaction"
   (let [new-state (new-game-state)]
     (when (= new-state :game-won)
-      (ref-set view-ref (fully-reveal-board)))
+      (ref-set view-ref (fully-reveal-board-on-win)))
     (when (= new-state :game-lost)
       (ref-set view-ref (fully-reveal-board)))
 ;    (condp = new-state
@@ -257,24 +265,28 @@
 
 (defn left-click [coords]
   (dosync
-   (if (nil? @board-ref)
+   (when (= @(state game) :pregame)
      (ref-set board-ref (make-swines (width game)
                                      (height game)
                                      (num-swines game)
-                                     coords)))
-   (alter view-ref uncover [coords])
-   (check-for-endgame)))
+                                     coords))
+     (ref-set (state game) :game-playing))
 
+   (when (= @(state game) :game-playing)
+     (alter view-ref uncover [coords])
+     (check-for-endgame))))
 
 (defn double-click [coords]
   (dosync
-   (alter view-ref double-dude coords)
-   (check-for-endgame)))
+   (when (= @(state game) :game-playing)
+     (alter view-ref double-dude coords)
+     (check-for-endgame))))
 
 (defn right-click [coords]
   (dosync
-   (alter view-ref mark coords)
-   (ref-set remaining-swines-ref (num-swines-unmarked @view-ref))))
+   (when (= @(state game) :game-playing)
+     (alter view-ref mark coords)
+     (ref-set remaining-swines-ref (num-swines-unmarked @view-ref)))))
 
 (defn make-action-listener [f]
   (proxy [ActionListener] []
@@ -379,4 +391,4 @@
 (defn swank-main []
   (make-frame JFrame/DISPOSE_ON_CLOSE))
 
-;(swank-main)
+(swank-main)
