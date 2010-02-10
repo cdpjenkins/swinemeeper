@@ -1,7 +1,5 @@
 ;; TODO let you know when game ends, either in success or failure
 ;; TODO configure dimensions + number of swines
-;; TODO turn the view into a defstruct that includes the view itself and
-;;      also board, num-swines, game-state (:pre-game, :playing, :lost, :won)
 ;; TODO timer
 ;; TODO high score table
 ;; TODO turn it into an applet
@@ -18,6 +16,18 @@
  '(javax.imageio ImageIO)
  '(javax.swing BoxLayout JButton JFrame JLabel JPanel))
 
+;
+(defstruct state-struct
+  :width
+  :height
+  :square-width
+  :square-height
+  :num-swines)
+
+(def game (struct state-struct 12 12 32 32 16))
+
+;
+
 ;; Constants
 
 (def width 12)
@@ -29,6 +39,8 @@
 (declare board-ref)
 (declare remaining-swines-ref)
 
+(declare square-str)
+
 ;; Mappings screen-coords <--> board-coords
 (defn screen-to-board [ [x y] ]
   [ (int (/ x square-width)) (int (/ y square-height)) ] )
@@ -39,7 +51,6 @@
 ;; Board functions
 
 (defn make-swines [width height num-swines & [ [ex ey]] ]
-  (println [ex ey])
   (set
    (take num-swines
 	 (shuffle (for [x (range width)
@@ -74,7 +85,7 @@
     :swine
     (num-surrounding x y)))
 
-(declare square-str)
+
 
 (defn print-board []
   (doseq [y (range height)]
@@ -139,6 +150,13 @@
 (defn num-swines-unmarked [view]
   (- num-swines (count-marked view)))
 
+(defn is-game-lost [view]
+  (> (count-swines view) 0))
+
+(defn is-game-won [view]
+  (= (count-revealed view)
+     (- (* width height) num-swines)))
+
 ; View (ref) manipulation functions
 
 (defn uncover [view coords]
@@ -174,14 +192,7 @@
 	(uncover view
 		 (filter #(= (view-square-at view %) :unknown)
 			 (neighbours x y)))
-	(if (= square
-	       (+ (num-unknown-neighbours view [x y])
-		  (num-marked-neighbours view [x y])))
-          view
-          ; TODO get rid of this properly
-;	  (mark-list view (filter #(= (view-square-at view %) :unknown)
-;				  (neighbours x y)))
-	  view))
+        view)
       view)))
 
 
@@ -208,6 +219,9 @@
      ; TODO what are we going to do when the game is lost? Hmm!?!?!
      nil))
   (when  (> (count-swines @view-ref) 0)
+    ; TODO this should be popping up a box instead eh
+    ; and probably not here cos you could also lose after a double-click in the
+    ; case of a misplaced flag
     (println "You lose, sucker!!!")))
 
 
