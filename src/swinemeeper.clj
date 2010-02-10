@@ -33,6 +33,8 @@
 
 (def width (accessor state-struct :width))
 (def height (accessor state-struct :height))
+(def square-width (accessor state-struct :square-width))
+(def square-height (accessor state-struct :square-height))
 (def num-swines (accessor state-struct :num-swines))
 (def state (accessor state-struct :state))
 
@@ -42,16 +44,6 @@
                                32               ; square-height
                                16               ; num-swines
                                (ref :pregame))) ; game-state
-;
-
-;; Constants
-
-;(def width 12)
-;(def height 12)
-(def square-width 32)
-(def square-height 32)
-;(def num-swines 16)
-
 (declare board-ref)
 (declare remaining-swines-ref)
 
@@ -59,10 +51,10 @@
 
 ;; Mappings screen-coords <--> board-coords
 (defn screen-to-board [ [x y] ]
-  [ (int (/ x square-width)) (int (/ y square-height)) ] )
+  [ (int (/ x (square-width game))) (int (/ y (square-height game))) ] )
 
 (defn board-to-screen [ [x y] ]
-  [ (* x square-width) (* y square-height) ])
+  [ (* x (square-width game)) (* y (square-height game)) ])
 
 ;; Board functions
 
@@ -221,6 +213,8 @@
 (defn format-remaining-swines []
   (str "Remaining Swines: " @remaining-swines-ref))
 
+; TODO don't fully reveal the board on lose... just reveal the swines/
+; and possible make the one that you just hit be a different colour
 (defn fully-reveal-board []
   (vec (for [y (iterate-height)]
     (vec (for [x (iterate-width)]
@@ -310,10 +304,11 @@
    8 (load-image "8.png")})
 
 (defn paint-square [g x y panel view images]
-  (let [sx (* x square-width)
-	sy (* y square-height)
+  (let [sx (* x (square-width game))
+	sy (* y (square-height game))
 	square ((view y) x)]
-    (.drawImage g (images square) sx sy square-width square-height 
+    (.drawImage g (images square) sx sy 
+                (square-width game) (square-height game)
 		Color/BLACK nil)))
 
 (defn make-remaining-swines-panel []
@@ -342,8 +337,8 @@
         images (load-images)
 	panel (proxy [JPanel] []
 		(getPreferredSize []
-                  (Dimension. (* (width game ) square-width)
-                              (* (height game) square-height)))
+                  (Dimension. (* (width game ) (square-width game))
+                              (* (height game) (square-height game))))
 		(paintComponent [g]
 		  (doseq [y (iterate-height)
 			  x (iterate-width)]
@@ -391,4 +386,5 @@
 (defn swank-main []
   (make-frame JFrame/DISPOSE_ON_CLOSE))
 
-(swank-main)
+;(swank-main)
+I apologize in advance it this is an inappropriate forum for this
