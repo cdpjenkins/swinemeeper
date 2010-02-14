@@ -5,13 +5,14 @@
 ;; TODO turn it into an applet
 ;; TODO push all the state into game state-struct object
 
+(set! *warn-on-reflection* true)
 
 (ns swinemeeper
   (:use clojure.contrib.seq-utils)
   (:gen-class))
 
 (import
- '(java.awt Color Dimension GridLayout)
+ '(java.awt Color Dimension Graphics GridLayout)
  '(java.awt.event ActionListener MouseAdapter MouseEvent)
  '(java.awt.image BufferedImage)
  '(java.io File)
@@ -38,11 +39,11 @@
 (def num-swines (accessor state-struct :num-swines))
 (def state (accessor state-struct :state))
 
-(def game (struct state-struct 12               ; width
-                               12               ; height
+(def game (struct state-struct 36               ; width
+                               24               ; height
                                32               ; square-width
                                32               ; square-height
-                               16               ; num-swines
+                               120              ; num-swines
                                (ref :pregame))) ; game-state
 (declare board-ref)
 (declare remaining-swines-ref)
@@ -93,6 +94,8 @@
     [ (- x 1) (+ y 1)]
     [ x (+ y 1)]
     [ (+ x 1) (+ y 1) ]]))
+
+(def neighbours (memoize neighbours))
 
 (defn num-surrounding [x y]
   (count (filter is-swine? (neighbours x y))))
@@ -210,7 +213,7 @@
         view)
       view)))
 
-(defn format-remaining-swines []
+(defn #^String format-remaining-swines []
   (str "Remaining Swines: " @remaining-swines-ref))
 
 ; TODO don't fully reveal the board on lose... just reveal the swines/
@@ -303,7 +306,7 @@
    7 (load-image "7.png")
    8 (load-image "8.png")})
 
-(defn paint-square [g x y panel view images]
+(defn paint-square [#^Graphics g x y panel view images]
   (let [sx (* x (square-width game))
 	sy (* y (square-height game))
 	square ((view y) x)]
@@ -348,7 +351,7 @@
     (doto panel
       (.addMouseListener
        (proxy [MouseAdapter] []
-	 (mouseClicked [e]
+	 (mouseClicked [#^MouseEvent e]
 	   (let [coords (screen-to-board [ (.getX e)
 					   (.getY e)]) 
 		 button (.getButton e)]
@@ -365,7 +368,7 @@
     panel))
 
 (defn make-main-panel []
-  (let [panel (JPanel.)]
+  (let [#^JPanel panel (JPanel.)]
     (doto panel
       (.setLayout (BoxLayout. panel BoxLayout/Y_AXIS))
       (.add (make-board-panel))
@@ -387,4 +390,3 @@
   (make-frame JFrame/DISPOSE_ON_CLOSE))
 
 ;(swank-main)
-I apologize in advance it this is an inappropriate forum for this
