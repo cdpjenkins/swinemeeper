@@ -27,7 +27,9 @@
   :square-height
   :num-swines
   :state
-  :board)
+  :board
+  :view)
+
 ; TODO add the following to state-struct
 ; - the board
 ; - the view
@@ -40,14 +42,27 @@
 (def num-swines (accessor state-struct :num-swines))
 (def state (accessor state-struct :state))
 (def board (accessor state-struct :board))
+(def view (accessor state-struct :view))
 
-(def game (struct state-struct 12               ; width
-                               12               ; height
-                               32               ; square-width
-                               32               ; square-height
-                               14              ; num-swines
-                               (ref :pregame)   ; game-state
-                               (ref nil)))      ; board
+(declare make-empty-view)
+
+(defn make-game [width height square-width square-height num-swines]
+  (struct state-struct width height square-width square-height num-swines
+          (ref :pregame) (ref nil) (ref (make-empty-view width height))))
+
+(def game (make-game 12 12
+                     32 32
+                     14))
+
+;(struct state-struct 12               ; width
+;                               12               ; height
+;                               32               ; square-width
+;                               32               ; square-height
+;                               14               ; num-swines
+;                               (ref :pregame)   ; game-state
+;                               (ref nil)        ; board
+;                               (ref (make-empty-view 12 12)))) ; view
+
 
 ;(declare board-ref)
 (declare remaining-swines-ref)
@@ -118,9 +133,9 @@
 
 ;; View functions
 
-(defn make-empty-view []
-  (vec (for [y (iterate-height)]
-    (vec (for [x (iterate-width)]
+(defn make-empty-view [width height]
+  (vec (for [y (range height)]
+    (vec (for [x (range width)]
       :unknown)))))
 
 (defn view-square-at [view [x y]]
@@ -238,14 +253,14 @@
 ; TODO get rid
 ;(def board-ref (ref nil))
 
-(def view-ref (ref (make-empty-view)))
+;(def view-ref (ref (make-empty-view 12 12)))
 (def remaining-swines-ref (ref (num-swines game)))
 
 ; Misc ref functions
 (defn new-game-state []
   (cond
-    (is-game-won @view-ref)  :game-won
-    (is-game-lost @view-ref) :game-lost
+    (is-game-won @(view game))  :game-won
+    (is-game-lost @(view game)) :game-lost
     :else :game-playing))
 
 (defn check-for-endgame []
@@ -253,9 +268,9 @@
   within a transaction"
   (let [new-state (new-game-state)]
     (when (= new-state :game-won)
-      (ref-set view-ref (fully-reveal-board-on-win)))
+      (ref-set (view game) (fully-reveal-board-on-win)))
     (when (= new-state :game-lost)
-      (ref-set view-ref (fully-reveal-board)))
+      (ref-set (view game) (fully-reveal-board)))
     (ref-set (state game) new-state)))
 
 ;; GUI stuff
@@ -272,20 +287,20 @@
      (ref-set (state game) :game-playing))
 
    (when (= @(state game) :game-playing)
-     (alter view-ref uncover [coords])
+     (alter (view game) uncover [coords])
      (check-for-endgame))))
 
 (defn double-click [coords]
   (dosync
    (when (= @(state game) :game-playing)
-     (alter view-ref double-dude coords)
+     (alter (view game) double-dude coords)
      (check-for-endgame))))
 
 (defn right-click [coords]
   (dosync
    (when (= @(state game) :game-playing)
-     (alter view-ref mark coords)
-     (ref-set remaining-swines-ref (num-swines-unmarked @view-ref)))))
+     (alter (view game) mark coords)
+     (ref-set remaining-swines-ref (num-swines-unmarked @(view game) )))))
 
 (defn make-action-listener [f]
   (proxy [ActionListener] []
@@ -347,8 +362,8 @@
 		(paintComponent [g]
 		  (doseq [y (iterate-height)
 			  x (iterate-width)]
-		    (paint-square g x y pointless-panel @view-ref images))))]
-    (add-watch view-ref "view updated" (fn [k r o n]
+		    (paint-square g x y pointless-panel @(view game) images))))]
+    (add-watch (view game) "view updated" (fn [k r o n]
                                          (.repaint panel)))
     (doto panel
       (.addMouseListener
