@@ -28,7 +28,8 @@
   :num-swines
   :state
   :board
-  :view)
+  :view
+  :remaining-swines)
 
 ; TODO add the following to state-struct
 ; - the board
@@ -43,29 +44,20 @@
 (def state (accessor state-struct :state))
 (def board (accessor state-struct :board))
 (def view (accessor state-struct :view))
+(def remaining-swines (accessor state-struct :remaining-swines))
 
 (declare make-empty-view)
 
 (defn make-game [width height square-width square-height num-swines]
   (struct state-struct width height square-width square-height num-swines
-          (ref :pregame) (ref nil) (ref (make-empty-view width height))))
+          (ref :pregame) (ref nil) (ref (make-empty-view width height))
+          (ref num-swines)))
 
 (def game (make-game 12 12
                      32 32
                      14))
 
-;(struct state-struct 12               ; width
-;                               12               ; height
-;                               32               ; square-width
-;                               32               ; square-height
-;                               14               ; num-swines
-;                               (ref :pregame)   ; game-state
-;                               (ref nil)        ; board
-;                               (ref (make-empty-view 12 12)))) ; view
-
-
-;(declare board-ref)
-(declare remaining-swines-ref)
+;(declare remaining-swines-ref)
 
 (declare square-str)
 
@@ -233,7 +225,7 @@
       view)))
 
 (defn #^String format-remaining-swines []
-  (str "Remaining Swines: " @remaining-swines-ref))
+  (str "Remaining Swines: " @(remaining-swines game)))
 
 ; TODO don't fully reveal the board on lose... just reveal the swines/
 ; and possible make the one that you just hit be a different colour
@@ -247,14 +239,6 @@
     (vec (for [x (iterate-width)]
       (let [square (try-square x y)]
         (if (= square :swine) :marked square)))))))
-          
-
-;; Refs
-; TODO get rid
-;(def board-ref (ref nil))
-
-;(def view-ref (ref (make-empty-view 12 12)))
-(def remaining-swines-ref (ref (num-swines game)))
 
 ; Misc ref functions
 (defn new-game-state []
@@ -300,7 +284,7 @@
   (dosync
    (when (= @(state game) :game-playing)
      (alter (view game) mark coords)
-     (ref-set remaining-swines-ref (num-swines-unmarked @(view game) )))))
+     (ref-set (remaining-swines game) (num-swines-unmarked @(view game) )))))
 
 (defn make-action-listener [f]
   (proxy [ActionListener] []
@@ -335,7 +319,7 @@
   (let [label (JLabel. (format-remaining-swines))
         panel (JPanel.)]
     (.add panel label)
-    (add-watch remaining-swines-ref
+    (add-watch (remaining-swines game)
                "remaining-swines"
                (fn [k r o n]
                  (when (= @(state game))
