@@ -26,7 +26,8 @@
   :square-width
   :square-height
   :num-swines
-  :state)
+  :state
+  :board)
 ; TODO add the following to state-struct
 ; - the board
 ; - the view
@@ -38,14 +39,17 @@
 (def square-height (accessor state-struct :square-height))
 (def num-swines (accessor state-struct :num-swines))
 (def state (accessor state-struct :state))
+(def board (accessor state-struct :board))
 
-(def game (struct state-struct 36               ; width
-                               24               ; height
+(def game (struct state-struct 12               ; width
+                               12               ; height
                                32               ; square-width
                                32               ; square-height
-                               120              ; num-swines
-                               (ref :pregame))) ; game-state
-(declare board-ref)
+                               14              ; num-swines
+                               (ref :pregame)   ; game-state
+                               (ref nil)))      ; board
+
+;(declare board-ref)
 (declare remaining-swines-ref)
 
 (declare square-str)
@@ -78,7 +82,7 @@
                     square)))))
 
 (defn is-swine? [pos]
-  (contains? @board-ref pos))
+  (contains? @(board game)  pos))
 
 (defn neighbours [x y]
   (filter
@@ -231,7 +235,9 @@
           
 
 ;; Refs
-(def board-ref (ref nil))
+; TODO get rid
+;(def board-ref (ref nil))
+
 (def view-ref (ref (make-empty-view)))
 (def remaining-swines-ref (ref (num-swines game)))
 
@@ -250,10 +256,6 @@
       (ref-set view-ref (fully-reveal-board-on-win)))
     (when (= new-state :game-lost)
       (ref-set view-ref (fully-reveal-board)))
-;    (condp = new-state
-;      :game-won (ref-set view-ref (fully-reveal-board))
-;      :game-lost (ref-set view-ref (fully-reveal-board))
-;      nil)
     (ref-set (state game) new-state)))
 
 ;; GUI stuff
@@ -263,10 +265,10 @@
 (defn left-click [coords]
   (dosync
    (when (= @(state game) :pregame)
-     (ref-set board-ref (make-swines (width game)
-                                     (height game)
-                                     (num-swines game)
-                                     coords))
+     (ref-set (board game) (make-swines (width game)
+                                        (height game)
+                                        (num-swines game)
+                                        coords))
      (ref-set (state game) :game-playing))
 
    (when (= @(state game) :game-playing)
@@ -361,9 +363,7 @@
 		   1 (left-click coords)
 		   2 (double-click coords)
 		   nil)
-	       MouseEvent/BUTTON3 (right-click coords))
-	     ; TODO get rid of the repain and replace with add-watch
-	     )))))
+	       MouseEvent/BUTTON3 (right-click coords)))))))
 
     panel))
 
