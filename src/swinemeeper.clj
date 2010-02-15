@@ -50,7 +50,7 @@
 
 (def game (ref (make-game 12 12
                           32 32
-                          14)))
+                          15)))
 
 ;(declare remaining-swines-ref)
 
@@ -224,7 +224,6 @@
 ; TODO don't fully reveal the board on lose... just reveal the swines/
 ; and possible make the one that you just hit be a different colour
 (defn fully-reveal-board [board]
-  (println "fully revealing")
   (vec (for [y (iterate-height)]
     (vec (for [x (iterate-width)]
       (try-square x y))))))
