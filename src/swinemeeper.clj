@@ -5,7 +5,7 @@
 ;; TODO turn it into an applet
 ;; TODO push all the state into game state-struct object
 
-(set! *warn-on-reflection* true)
+;(set! *warn-on-reflection* true)
 
 (ns swinemeeper
   (:use clojure.contrib.seq-utils)
@@ -42,15 +42,12 @@
 (def remaining-swines (accessor state-struct :remaining-swines))
 
 (declare make-empty-view)
+(declare game)
 
 (defn make-game [width height square-width square-height num-swines]
   (struct state-struct width height square-width square-height num-swines
           :pregame nil (make-empty-view width height)
           num-swines))
-
-(def game (ref (make-game 12 12
-                          32 32
-                          15)))
 
 ;(declare remaining-swines-ref)
 
@@ -395,6 +392,10 @@
       (.setDefaultCloseOperation close-action)
       (.pack)
       (.show))))
+
+(def game (ref (make-game 12 12
+                          32 32
+                          15)))
 
 (defn -main []
   (make-frame JFrame/EXIT_ON_CLOSE))
