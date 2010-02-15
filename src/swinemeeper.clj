@@ -31,11 +31,6 @@
   :view
   :remaining-swines)
 
-; TODO add the following to state-struct
-; - the board
-; - the view
-; - the GUI? Maybe.
-
 (def width (accessor state-struct :width))
 (def height (accessor state-struct :height))
 (def square-width (accessor state-struct :square-width))
@@ -50,12 +45,12 @@
 
 (defn make-game [width height square-width square-height num-swines]
   (struct state-struct width height square-width square-height num-swines
-          (ref :pregame) (ref nil) (ref (make-empty-view width height))
-          (ref num-swines)))
+          :pregame nil (make-empty-view width height)
+          num-swines))
 
-(def game (make-game 12 12
-                     32 32
-                     14))
+(def game (ref (make-game 12 12
+                          32 32
+                          14)))
 
 ;(declare remaining-swines-ref)
 
@@ -63,18 +58,18 @@
 
 ;; Mappings screen-coords <--> board-coords
 (defn screen-to-board [ [x y] ]
-  [ (int (/ x (square-width game))) (int (/ y (square-height game))) ] )
+  [ (int (/ x (square-width @game))) (int (/ y (square-height @game))) ] )
 
 (defn board-to-screen [ [x y] ]
-  [ (* x (square-width game)) (* y (square-height game)) ])
+  [ (* x (square-width @game)) (* y (square-height @game)) ])
 
 ;; Board functions
 
 (defn iterate-width []
-  (range (width game)))
+  (range (width @game)))
 
 (defn iterate-height []
-  (range (height game)))
+  (range (height @game)))
 
 (defn iterate-board []
   (for [y (iterate-height)
@@ -88,15 +83,15 @@
                         :when (not (= square exclude-square))]
                     square)))))
 
-(defn is-swine? [pos]
-  (contains? @(board game)  pos))
+(defn is-swine? [board pos]
+  (contains? board pos))
 
 (defn neighbours [x y]
   (filter
    (fn [ [x y] ] (and (>= x 0)
-		      (< x (width game))
+		      (< x (width @game))
 		      (>= y 0)
-		      (< y (height game))))
+		      (< y (height @game))))
    [[(- x 1) (- y 1)]
     [ x (- y 1)]
     [ (+ x 1) (- y 1)]
@@ -109,11 +104,10 @@
 (def neighbours (memoize neighbours))
 
 (defn num-surrounding [x y]
-  (count (filter is-swine? (neighbours x y))))
-
+  (count (filter #(is-swine? (board @game) %) (neighbours x y))))
 
 (defn try-square [x y]
-  (if (is-swine? [x y])
+  (if (is-swine? (board @game) [x y])
     :swine
     (num-surrounding x y)))
 
@@ -177,14 +171,14 @@
   (countp view #(= % :swine)))
 
 (defn num-swines-unmarked [view]
-  (- (num-swines game) (count-marked view)))
+  (- (num-swines @game) (count-marked view)))
 
 (defn is-game-lost [view]
   (> (count-swines view) 0))
 
 (defn is-game-won [view]
   (= (count-revealed view)
-     (- (* (width game) (height game)) (num-swines game))))
+     (- (* (width @game) (height @game)) (num-swines @game))))
 
 ; View (ref) manipulation functions
 
@@ -218,44 +212,73 @@
   (let [square (view-square-at view [x y])]
     (if (number? square)
       (if (= square (num-marked-neighbours view [x y]))
-	(uncover view
-		 (filter #(= (view-square-at view %) :unknown)
-			 (neighbours x y)))
+        (uncover view
+                 (filter #(= (view-square-at view %) :unknown)
+                         (neighbours x y)))
         view)
       view)))
 
 (defn #^String format-remaining-swines []
-  (str "Remaining Swines: " @(remaining-swines game)))
+  (str "Remaining Swines: " (remaining-swines @game)))
 
 ; TODO don't fully reveal the board on lose... just reveal the swines/
 ; and possible make the one that you just hit be a different colour
-(defn fully-reveal-board []
+(defn fully-reveal-board [board]
+  (println "fully revealing")
   (vec (for [y (iterate-height)]
     (vec (for [x (iterate-width)]
       (try-square x y))))))
 
-(defn fully-reveal-board-on-win []
+(defn fully-reveal-board-on-win [board]
   (vec (for [y (iterate-height)]
     (vec (for [x (iterate-width)]
       (let [square (try-square x y)]
         (if (= square :swine) :marked square)))))))
 
-; Misc ref functions
-(defn new-game-state []
+; Game manipulation functions
+(defn new-game-state [game]
   (cond
-    (is-game-won @(view game))  :game-won
-    (is-game-lost @(view game)) :game-lost
+    (is-game-won (view game))  :game-won
+    (is-game-lost (view game)) :game-lost
     :else :game-playing))
 
-(defn check-for-endgame []
+(defn check-for-endgame [game]
   "Checks for the end of the game and updates game state. Must be called from
   within a transaction"
-  (let [new-state (new-game-state)]
-    (when (= new-state :game-won)
-      (ref-set (view game) (fully-reveal-board-on-win)))
-    (when (= new-state :game-lost)
-      (ref-set (view game) (fully-reveal-board)))
-    (ref-set (state game) new-state)))
+  (let [new-state (new-game-state game)]
+    (condp = new-state
+      :game-won (assoc game :view (fully-reveal-board-on-win (board game))
+                            :state new-state)
+      :game-lost (assoc game :view (fully-reveal-board (board game))
+                             :state new-state)
+      (assoc game :state new-state))))
+
+(defn game-reveal-square [game coords]
+  (condp = (state game)
+    :game-playing
+    (let [new-view (uncover (view game) [coords])
+          new-game (assoc game :view new-view)]
+      (check-for-endgame new-game))
+    game))
+
+(defn game-create-board [game coords]
+  (assoc game :board (make-swines (width game)
+                                  (height game)
+                                  (num-swines game)
+                                  coords)
+              :state :game-playing))
+
+; TODO better name
+(defn game-double-click [game coords]
+  (if (= (state game) :game-playing)
+    (let [new-game (assoc game :view (double-dude (view game) coords))]
+      (check-for-endgame new-game))
+    game))
+
+(defn game-flag [game coords]
+  (let [new-view (mark (view game) coords)]
+    (assoc game :view new-view
+                :remaining-swines (num-swines-unmarked new-view))))
 
 ;; GUI stuff
 
@@ -263,28 +286,20 @@
 
 (defn left-click [coords]
   (dosync
-   (when (= @(state game) :pregame)
-     (ref-set (board game) (make-swines (width game)
-                                        (height game)
-                                        (num-swines game)
-                                        coords))
-     (ref-set (state game) :game-playing))
-
-   (when (= @(state game) :game-playing)
-     (alter (view game) uncover [coords])
-     (check-for-endgame))))
+   ; TODO slight hack here but not sure what to do... if the game is not
+   ;      in progress then need to start the game
+   (when (= (state @game) :pregame)
+     (alter game game-create-board coords))
+   (when (= (state @game) :game-playing)
+     (alter game game-reveal-square coords))))
 
 (defn double-click [coords]
   (dosync
-   (when (= @(state game) :game-playing)
-     (alter (view game) double-dude coords)
-     (check-for-endgame))))
+   (alter game game-double-click coords)))
 
 (defn right-click [coords]
   (dosync
-   (when (= @(state game) :game-playing)
-     (alter (view game) mark coords)
-     (ref-set (remaining-swines game) (num-swines-unmarked @(view game) )))))
+   (alter game game-flag coords)))
 
 (defn make-action-listener [f]
   (proxy [ActionListener] []
@@ -308,26 +323,26 @@
    8 (load-image "8.png")})
 
 (defn paint-square [#^Graphics g x y panel view images]
-  (let [sx (* x (square-width game))
-	sy (* y (square-height game))
+  (let [sx (* x (square-width @game))
+	sy (* y (square-height @game))
 	square ((view y) x)]
     (.drawImage g (images square) sx sy 
-                (square-width game) (square-height game)
+                (square-width @game) (square-height @game)
 		Color/BLACK nil)))
 
 (defn make-remaining-swines-panel []
   (let [label (JLabel. (format-remaining-swines))
         panel (JPanel.)]
     (.add panel label)
-    (add-watch (remaining-swines game)
+    (add-watch game
                "remaining-swines"
                (fn [k r o n]
-                 (when (= @(state game))
+                 (when (= (state @game) :game-playing)
                    (.setText label (format-remaining-swines)))))
-    (add-watch (state game)
+    (add-watch game
                "game state"
       (fn [k r o n]
-        (condp = n
+        (condp = (state n)
           :game-lost (SwingUtilities/invokeLater
                        #(.setText label "You lose, sucker!"))
           :game-won  (SwingUtilities/invokeLater
@@ -341,14 +356,14 @@
         images (load-images)
 	panel (proxy [JPanel] []
 		(getPreferredSize []
-                  (Dimension. (* (width game ) (square-width game))
-                              (* (height game) (square-height game))))
+                  (Dimension. (* (width @game ) (square-width @game))
+                              (* (height @game) (square-height @game))))
 		(paintComponent [g]
 		  (doseq [y (iterate-height)
 			  x (iterate-width)]
-		    (paint-square g x y pointless-panel @(view game) images))))]
-    (add-watch (view game) "view updated" (fn [k r o n]
-                                         (.repaint panel)))
+		    (paint-square g x y pointless-panel (view @game) images))))]
+    (add-watch game "view updated" (fn [k r o n]
+                                     (.repaint panel)))
     (doto panel
       (.addMouseListener
        (proxy [MouseAdapter] []
