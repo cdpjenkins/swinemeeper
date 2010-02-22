@@ -1,9 +1,9 @@
 ;; TODO configure dimensions + number of swines by popping up some kind of
-;;      dialog or something
+;;      dialog or something - still need to make the dialog less rubbish 
 ;; TODO timer
 ;; TODO high score table
 ;; TODO turn it into an applet
-;; TODO push all the state into game state-struct object
+;; TODO do all thar gui calls on the awt thread
 
 ;(set! *warn-on-reflection* true)
 
@@ -17,7 +17,9 @@
  '(java.awt.image BufferedImage)
  '(java.io File)
  '(javax.imageio ImageIO)
- '(javax.swing BoxLayout JButton JFrame JLabel JPanel SwingUtilities))
+ '(javax.swing BoxLayout ButtonGroup
+               JButton JDialog JFrame JLabel JPanel JRadioButton
+               SwingUtilities))
 
 ;
 (defstruct state-struct
@@ -48,8 +50,6 @@
   (struct state-struct width height square-width square-height num-swines
           :pregame nil (make-empty-view width height)
           num-swines))
-
-;(declare remaining-swines-ref)
 
 (declare square-str)
 
@@ -83,7 +83,7 @@
 (defn is-swine? [board pos]
   (contains? board pos))
 
-(defn neighbours [x y]
+(defn neighbours-fn [x y]
   (filter
    (fn [ [x y] ] (and (>= x 0)
 		      (< x (width @game))
@@ -98,10 +98,10 @@
     [ x (+ y 1)]
     [ (+ x 1) (+ y 1) ]]))
 
-(def neighbours (memoize neighbours))
+(def neighbours (atom (memoize neighbours-fn)))
 
 (defn num-surrounding [x y]
-  (count (filter #(is-swine? (board @game) %) (neighbours x y))))
+  (count (filter #(is-swine? (board @game) %) (@neighbours x y))))
 
 (defn try-square [x y]
   (if (is-swine? (board @game) [x y])
@@ -128,7 +128,7 @@
 (defn num-neighbours= [view [x y] value]
   (count (filter #(= value %)
 		 (map #(view-square-at view %)
-		      (neighbours x y)))))
+		      (@neighbours x y)))))
 
 (defn num-marked-neighbours [view [x y]]
   (num-neighbours= view [x y] :marked))
@@ -143,7 +143,7 @@
 	 sq)))
 
 (defn view-square-str [view x y]
-  (square-str ((view y) x)))
+  (square-str (view-square-at view x y)))
 
 (defn print-view [view]
   (doseq [y (iterate-height)]
@@ -177,7 +177,7 @@
   (= (count-revealed view)
      (- (* (width @game) (height @game)) (num-swines @game))))
 
-; View (ref) manipulation functions
+; View manipulation functions
 
 (defn uncover [view coords]
   (if (= coords [])
@@ -186,14 +186,14 @@
 	  square (try-square x y)
 	  new-view (assoc-in view [y x] square)
 	  new-coords (if (and
-			  (= ((view y) x) :unknown)
+			  (= (view-square-at view [x y]) :unknown)
 			  (= square 0))
-		       (concat (rest coords) (neighbours x y))
+		       (concat (rest coords) (@neighbours x y))
 		       (rest coords))]
       (recur new-view new-coords))))
 
 (defn mark [view [x y]]
-  (condp = ((view y) x)
+  (condp = (view-square-at view [x y])
     :unknown (assoc-in view [y x] :marked)
     :marked  (assoc-in view [y x] :unknown)
     view))
@@ -211,7 +211,7 @@
       (if (= square (num-marked-neighbours view [x y]))
         (uncover view
                  (filter #(= (view-square-at view %) :unknown)
-                         (neighbours x y)))
+                         (@neighbours x y)))
         view)
       view)))
 
@@ -231,7 +231,7 @@
       (let [square (try-square x y)]
         (if (= square :swine) :marked square)))))))
 
-; Game manipulation functions
+; Game manpulation functions
 (defn new-game-state [game]
   (cond
     (is-game-won (view game))  :game-won
@@ -297,10 +297,6 @@
   (dosync
    (alter game game-flag coords)))
 
-(defn make-action-listener [f]
-  (proxy [ActionListener] []
-    (actionPerformed [e] (f e))))
-
 (defn load-image [filename]
   (ImageIO/read (ClassLoader/getSystemResource filename)))
 
@@ -321,10 +317,53 @@
 (defn paint-square [#^Graphics g x y panel view images]
   (let [sx (* x (square-width @game))
 	sy (* y (square-height @game))
-	square ((view y) x)]
+	square (view-square-at view [x y])]
     (.drawImage g (images square) sx sy 
                 (square-width @game) (square-height @game)
 		Color/BLACK nil)))
+
+;; HACK TODO sort out
+(declare frame)
+(declare new-game)
+
+; TODO HACK
+(defn make-radio-button [name]
+  (let [button (JRadioButton. name)]
+    (doto button
+      (.setActionCommand name))))
+
+(defn make-choose-game-dialog []
+  (let [dialog (JDialog. @frame "Husston-skank" true)
+        pane (JPanel.)
+        button-group (ButtonGroup.)
+        small-button (make-radio-button "Small")
+        medium-button (make-radio-button "Medium")
+        large-button (make-radio-button "Large")
+        ok-button (JButton. "Ok")]
+    (.addActionListener ok-button
+      (proxy [ActionListener] []
+        (actionPerformed [e]
+          (println (.. button-group getSelection getActionCommand))
+          (condp = (.. button-group getSelection getActionCommand)
+            "Small" (new-game (make-game 10 10 32 32 10))
+            "Medium" (new-game (make-game 16 16 32 32 40))
+            "Large" (new-game (make-game 30 16 32 32 99))
+            nil)
+          (.setVisible dialog false))))
+
+    (.setLayout pane (BoxLayout. pane BoxLayout/Y_AXIS))
+    (doto button-group
+      (.add small-button)
+      (.add medium-button)
+      (.add large-button))      
+    (doto pane
+      (.add small-button)
+      (.add medium-button)
+      (.add large-button)
+      (.add ok-button))
+    (.setContentPane dialog pane)
+    (.pack dialog)
+    (.setVisible dialog true)))
 
 (defn make-remaining-swines-panel []
   (let [label (JLabel. (format-remaining-swines))
@@ -340,12 +379,15 @@
       (fn [k r o n]
         (condp = (state n)
           :game-lost (SwingUtilities/invokeLater
-                       #(.setText label "You lose, sucker!"))
+                      (fn []
+                        (.setText label "You lose, sucker!")
+                        (make-choose-game-dialog)))
           :game-won  (SwingUtilities/invokeLater
-                       #(.setText label "You win. Hoo-ray!"))
+                      (fn []
+                        (.setText label "You win. Hoo-ray!")
+                        (make-choose-game-dialog)))
           nil)))
     panel))
-       
 
 (defn make-board-panel []
   (let [pointless-panel (JPanel.)
@@ -358,8 +400,12 @@
 		  (doseq [y (iterate-height)
 			  x (iterate-width)]
 		    (paint-square g x y pointless-panel (view @game) images))))]
-    (add-watch game "view updated" (fn [k r o n]
-                                     (.repaint panel)))
+    (add-watch game "view updated" 
+               (fn [k r o n]
+                 (if (not= o n)
+                   (doto panel
+                     (.invalidate)
+                     (.repaint)))))
     (doto panel
       (.addMouseListener
        (proxy [MouseAdapter] []
@@ -393,14 +439,33 @@
       (.pack)
       (.show))))
 
-(def game (ref (make-game 12 12
-                          32 32
-                          15)))
+(def game (ref nil))
+(def frame (ref nil))
 
 (defn -main []
-  (make-frame JFrame/EXIT_ON_CLOSE))
+  ;; TODO hack
+  (dosync
+   ;; TODO move that into a "make easy game function"
+   (ref-set game (make-game 12 12 32 32 12)))
+  (dosync
+   (ref-set frame (make-frame JFrame/EXIT_ON_CLOSE)))
+  (make-choose-game-dialog))
 
-(defn swank-main []
-  (make-frame JFrame/DISPOSE_ON_CLOSE))
+;(defn swank-main []
+;  (make-frame JFrame/DISPOSE_ON_CLOSE))
 
 ;(swank-main)
+
+; TODO figure out an appropriate place to put this and then move it there
+; TODO MEGA HACK with all these refs. atoms might be better.
+(defn new-game [the-game]
+  (dosync
+   (ref-set game the-game))
+  (dosync
+   (when (not (nil? @frame))
+     (.pack @frame)))
+  (dosync
+   (when (not (nil? @frame))
+     (.repaint @frame)))
+  ; TODO sort this out a bit better
+  (reset! neighbours (memoize neighbours-fn)))
