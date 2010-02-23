@@ -4,8 +4,10 @@
 ;; TODO high score table
 ;; TODO turn it into an applet
 ;; TODO do all thar gui calls on the awt thread
-;; TODO quit button on  the choose-game-dialog
-;; TODO show incorrectly placed flags
+
+
+;; TODO create a "quit game" function which can be different depending on
+;;      whether we launched from swank or not
 
 ;(set! *warn-on-reflection* true)
 
@@ -222,12 +224,23 @@
 
 ; TODO don't fully reveal the board on lose... just reveal the swines/
 ; and possible make the one that you just hit be a different colour
-(defn fully-reveal-board [board]
+(defn fully-reveal-board-on-lose [board view]
   (vec (for [y (iterate-height)]
     (vec (for [x (iterate-width)]
-      (try-square x y))))))
+;      (if (= (view-square-at [x y]) :unknown)
+;        (try-square x y)
+;        (view-square-at [x y]) ))))))
+       (condp = (view-square-at view [x y])
+         :marked (if (not (is-swine? board [x y]))
+                   :incorrectly-marked
+                   :marked)
+         :swine :exploding_swine
+         :unknown (if (is-swine? board [x y])
+                    :swine
+                    :unknown)
+         (try-square x y)))))))
 
-(defn fully-reveal-board-on-win [board]
+(defn fully-reveal-board-on-win [board view]
   (vec (for [y (iterate-height)]
     (vec (for [x (iterate-width)]
       (let [square (try-square x y)]
@@ -241,13 +254,14 @@
     :else :game-playing))
 
 (defn check-for-endgame [game]
-  "Checks for the end of the game and updates game state. Must be called from
-  within a transaction"
+  "Checks for the end of the game and updates game state."
   (let [new-state (new-game-state game)]
     (condp = new-state
-      :game-won (assoc game :view (fully-reveal-board-on-win (board game))
+      :game-won (assoc game :view (fully-reveal-board-on-win (board game)
+                                                             (view game))
                             :state new-state)
-      :game-lost (assoc game :view (fully-reveal-board (board game))
+      :game-lost (assoc game :view (fully-reveal-board-on-lose (board game)
+                                                               (view game))
                              :state new-state)
       (assoc game :state new-state))))
 
@@ -283,21 +297,18 @@
 ;  GUI event handlers
 
 (defn left-click [coords]
-  (dosync
-   ; TODO slight hack here but not sure what to do... if the game is not
-   ;      in progress then need to start the game
-   (when (= (state @game) :pregame)
-     (alter game game-create-board coords))
-   (when (= (state @game) :game-playing)
-     (alter game game-reveal-square coords))))
+  ; TODO slight hack here but not sure what to do... if the game is not
+  ;      in progress then need to start the game
+  (when (= (state @game) :pregame)
+    (swap! game game-create-board coords))
+  (when (= (state @game) :game-playing)
+    (swap! game game-reveal-square coords)))
 
 (defn double-click [coords]
-  (dosync
-   (alter game game-double-click coords)))
+  (swap! game game-double-click coords))
 
 (defn right-click [coords]
-  (dosync
-   (alter game game-flag coords)))
+  (swap! game game-flag coords))
 
 (defn load-image [filename]
   (ImageIO/read (ClassLoader/getSystemResource filename)))
@@ -310,7 +321,9 @@
 (defn load-images []
   {:unknown (load-image "unknown.png")
    :swine (load-image "swine.png")
+   :exploding_swine (load-image "exploding_swine.png")
    :marked (load-image "marked.png")
+   :incorrectly-marked (load-image "incorrectly_marked.png")
    0 (load-image "0.png")
    1 (load-image "1.png")
    2 (load-image "2.png")
@@ -454,38 +467,31 @@
       (.pack)
       (.show))))
 
-(def game (ref nil))
-(def frame (ref nil))
+(def game (atom nil))
+(def frame (atom nil))
 
 (defn -main []
   ;; TODO hack
-  (dosync
-   ;; TODO move that into a "make easy game function"
-   (ref-set game (make-game 12 12 32 32 12)))
-  (dosync
-   (ref-set frame (make-frame JFrame/EXIT_ON_CLOSE)))
+  ;; TODO move that into a "make easy game function"
+  (reset! game (make-game 12 12 32 32 12))
+  (reset! frame (make-frame JFrame/EXIT_ON_CLOSE))
   (make-choose-game-dialog))
 
 (defn swank-main []
   ;; TODO hack
-  (dosync
-   ;; TODO move that into a "make easy game function"
-   (ref-set game (make-game 12 12 32 32 12)))
-  (dosync
-   (ref-set frame (make-frame JFrame/DISPOSE_ON_CLOSE)))
+  ;; TODO move that into a "make easy game function"
+  (reset! game (make-game 12 12 32 32 12))
+  (reset! frame (make-frame JFrame/DISPOSE_ON_CLOSE))
   (make-choose-game-dialog))
 
 ; TODO figure out an appropriate place to put this and then move it there
-; TODO MEGA HACK with all these refs. atoms might be better.
 (defn new-game [the-game]
-  (dosync
-   (ref-set game the-game))
-  (dosync
-   (when (not (nil? @frame))
-     (.pack @frame)))
-  (dosync
-   (when (not (nil? @frame))
-     (.repaint @frame)))
+  (reset! game the-game)
+  ; TODO write our own pack function that checks if not null n that
+  (when (not (nil? @frame))
+    (.pack @frame))
+  (when (not (nil? @frame))
+    (.repaint @frame))
   ; TODO sort this out a bit better
   (reset! neighbours (memoize neighbours-fn)))
   
