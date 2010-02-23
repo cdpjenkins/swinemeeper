@@ -4,6 +4,8 @@
 ;; TODO high score table
 ;; TODO turn it into an applet
 ;; TODO do all thar gui calls on the awt thread
+;; TODO quit button on  the choose-game-dialog
+;; TODO show incorrectly placed flags
 
 ;(set! *warn-on-reflection* true)
 
@@ -300,6 +302,11 @@
 (defn load-image [filename]
   (ImageIO/read (ClassLoader/getSystemResource filename)))
 
+(defmacro make-action-listener [ [e] & body]
+  `(proxy [ActionListener] []
+     (actionPerformed [~e]
+       ~@body)))
+
 (defn load-images []
   {:unknown (load-image "unknown.png")
    :swine (load-image "swine.png")
@@ -339,17 +346,25 @@
         small-button (make-radio-button "Small")
         medium-button (make-radio-button "Medium")
         large-button (make-radio-button "Large")
-        ok-button (JButton. "Ok")]
-    (.addActionListener ok-button
-      (proxy [ActionListener] []
-        (actionPerformed [e]
-          (println (.. button-group getSelection getActionCommand))
-          (condp = (.. button-group getSelection getActionCommand)
-            "Small" (new-game (make-game 10 10 32 32 10))
-            "Medium" (new-game (make-game 16 16 32 32 40))
-            "Large" (new-game (make-game 30 16 32 32 99))
-            nil)
-          (.setVisible dialog false))))
+        buttons-panel (JPanel.)
+        start-game-button (JButton. "Start Game")
+        quit-button (JButton. "Quit")]
+
+    (.addActionListener start-game-button
+      (make-action-listener [e]
+        (condp = (.. button-group getSelection getActionCommand)
+          "Small" (new-game (make-game 10 10 32 32 10))
+          "Medium" (new-game (make-game 16 16 32 32 40))
+          "Large" (new-game (make-game 30 16 32 32 99))
+          nil)
+          (.setVisible dialog false)))
+    (.addActionListener quit-button
+      (make-action-listener [e]
+        (System/exit 0)))
+    (doto buttons-panel
+      (.setLayout (BoxLayout. buttons-panel BoxLayout/X_AXIS))
+      (.add start-game-button)
+      (.add quit-button))
 
     (.setLayout pane (BoxLayout. pane BoxLayout/Y_AXIS))
     (doto button-group
@@ -360,7 +375,7 @@
       (.add small-button)
       (.add medium-button)
       (.add large-button)
-      (.add ok-button))
+      (.add buttons-panel))
     (.setContentPane dialog pane)
     (.pack dialog)
     (.setVisible dialog true)))
@@ -451,10 +466,14 @@
    (ref-set frame (make-frame JFrame/EXIT_ON_CLOSE)))
   (make-choose-game-dialog))
 
-;(defn swank-main []
-;  (make-frame JFrame/DISPOSE_ON_CLOSE))
-
-;(swank-main)
+(defn swank-main []
+  ;; TODO hack
+  (dosync
+   ;; TODO move that into a "make easy game function"
+   (ref-set game (make-game 12 12 32 32 12)))
+  (dosync
+   (ref-set frame (make-frame JFrame/DISPOSE_ON_CLOSE)))
+  (make-choose-game-dialog))
 
 ; TODO figure out an appropriate place to put this and then move it there
 ; TODO MEGA HACK with all these refs. atoms might be better.
@@ -469,3 +488,4 @@
      (.repaint @frame)))
   ; TODO sort this out a bit better
   (reset! neighbours (memoize neighbours-fn)))
+  
