@@ -50,6 +50,8 @@
 (declare make-empty-view)
 (declare game)
 
+(def quit-fn (atom nil))
+
 (defn make-game [width height square-width square-height num-swines]
   (struct state-struct width height square-width square-height num-swines
           :pregame nil (make-empty-view width height)
@@ -77,11 +79,17 @@
         x (iterate-width)]
     [x y]))
 
+(defn squares-are-adjacent [ [x1 y1] [x2 y2] ]
+  (and
+   (< (Math/abs (- x1 x2)) 3)
+   (< (Math/abs (- y1 y2)) 3)))
+
 (defn make-swines [width height num-swines & [exclude-square ] ]
   (set
    (take num-swines
 	 (shuffle (for [square (iterate-board)
-                        :when (not (= square exclude-square))]
+                        :when (not
+                               (squares-are-adjacent square exclude-square))]
                     square)))))
 
 (defn is-swine? [board pos]
@@ -373,7 +381,8 @@
           (.setVisible dialog false)))
     (.addActionListener quit-button
       (make-action-listener [e]
-        (System/exit 0)))
+        (@quit-fn)))
+            
     (doto buttons-panel
       (.setLayout (BoxLayout. buttons-panel BoxLayout/X_AXIS))
       (.add start-game-button)
@@ -470,11 +479,20 @@
 (def game (atom nil))
 (def frame (atom nil))
 
+(defn quit-jvm []
+  (System/exit 0))
+
+(defn quit-swank []
+  (.setVisible @frame false)
+  (.dispose @frame)
+  (reset! frame nil))
+
 (defn -main []
   ;; TODO hack
   ;; TODO move that into a "make easy game function"
   (reset! game (make-game 12 12 32 32 12))
   (reset! frame (make-frame JFrame/EXIT_ON_CLOSE))
+  (reset! quit-fn quit-jvm)
   (make-choose-game-dialog))
 
 (defn swank-main []
@@ -482,6 +500,7 @@
   ;; TODO move that into a "make easy game function"
   (reset! game (make-game 12 12 32 32 12))
   (reset! frame (make-frame JFrame/DISPOSE_ON_CLOSE))
+  (reset! quit-fn quit-swank)
   (make-choose-game-dialog))
 
 ; TODO figure out an appropriate place to put this and then move it there
