@@ -12,7 +12,14 @@
 ;(set! *warn-on-reflection* true)
 
 (ns swinemeeper
-  (:use clojure.contrib.seq-utils)
+  (:use compojure.core
+        clojure.contrib.seq
+        hiccup.core
+        hiccup.page-helpers
+        ring.adapter.jetty
+        ring.util.response)
+
+  (:require [compojure.route :as route])
   (:gen-class))
 
 (import
@@ -325,6 +332,21 @@
   `(proxy [ActionListener] []
      (actionPerformed [~e]
        ~@body)))
+(def images
+  {:unknown "unknown.png"
+   :swine "swine.png"
+   :exploding_swine"exploding_swine.png"
+   :marked "marked.png"
+   :incorrectly-marked "incorrectly_marked.png"
+   0 "0.png"
+   1 "1.png"
+   2 "2.png"
+   3 "3.png"
+   4 "4.png"
+   5 "5.png"
+   6 "6.png"
+   7 "7.png"
+   8 "8.png"})
 
 (defn load-images []
   {:unknown (load-image "unknown.png")
@@ -513,4 +535,73 @@
     (.repaint @frame))
   ; TODO sort this out a bit better
   (reset! neighbours (memoize neighbours-fn)))
-  
+
+;;;;; web esque stuff
+(defn draw-board []
+  (html
+   [:html
+    [:head [:title "Swine Meeper"]]
+    [:body
+     [:table
+      (let [view (:view @game)]
+        (for [ [y row] (indexed view)]
+          [:tr
+           (for [ [x square] (indexed row)]
+             (let [form-id (str x "_" y)]
+               [:td
+;              [:a {:href (str "/swinemeeper/click/" x "/" y)}
+                [:form {:action (str "/swinemeeper/click")
+                        :method "get"
+                        :id form-id}
+                 [:input {:type "hidden"
+                          :name "bx"
+                          :value (str x)}]
+                 [:input {:type "hidden"
+                          :name "by"
+                          :value (str y)}]
+                 [:a {:href (str "javascript: document.forms['"
+                                 form-id "'].submit()") }
+                  [:img {:src (str "/images/" (images square))   }]]
+;                 [:input {:type "image"
+;                          :src (str "/images/" (images square))
+;                          :border "0"}]]
+                ]]))]))]]]))
+
+(defn husston [name]
+  (let [path (str "src/" name ".png")]
+    (println path)
+    (file-response path)))
+
+(defn hoss []
+  (println "hoss")
+  "<h1>Mooing bovine cow!</h1>")
+
+(defn web-left-click [coords]
+  (left-click coords)
+  (draw-board))
+
+(defroutes example
+  (GET "/" [] (hoss))
+
+  (GET "/huss" [kiwi snake] (println kiwi snake))
+
+  (GET "/images/:name.png" [name] (husston name))
+ 
+  (GET "/view-cookies" {cookies :cookies} (str cookies))
+
+  (GET "/cuss-ton" [x y]
+      (str x y))
+
+  (GET "/swinemeeper" [] (draw-board))
+  (GET "/swinemeeper/click" [bx by]
+    (do
+      (println "huss" bx)
+      (println "hoss" by)
+      (web-left-click 
+       [(Integer/parseInt bx)
+        (Integer/parseInt by)])
+      (redirect "/swinemeeper")))
+  (GET "/other" [] "poo")
+  (route/not-found "Page not found"))
+
+(defonce server (run-jetty (var example) {:port 8080 :join? false}))
