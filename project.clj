@@ -8,4 +8,4 @@
 
     :dev-dependencies [[swank-clojure "1.2.1"]]
 
-    :main swinemeeper)
+    :main gui)
