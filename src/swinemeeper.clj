@@ -13,7 +13,7 @@
 
 (ns swinemeeper
 
-  (:require [compojure.route :as route])
+  (:use board)
   (:gen-class))
 
 (defstruct state-struct
@@ -48,7 +48,7 @@
           :pregame nil (make-empty-view width height)
           num-swines))
 
-(declare square-str)
+;(declare square-str)
 
 ;; Mappings screen-coords <--> board-coords
 (defn screen-to-board [ [x y] ]
@@ -56,83 +56,6 @@
 
 (defn board-to-screen [ [x y] ]
   [ (* x (square-width @game)) (* y (square-height @game)) ])
-
-;; Board functions
-
-(defn iterate-width []
-  (range (width @game)))
-
-(defn iterate-height []
-  (range (height @game)))
-
-(defn iterate-board []
-  (for [y (iterate-height)
-        x (iterate-width)]
-    [x y]))
-
-(defn squares-are-adjacent [ [x1 y1] [x2 y2] ]
-  (and
-   (< (Math/abs (- x1 x2)) 3)
-   (< (Math/abs (- y1 y2)) 3)))
-
-(defn make-swines [width height num-swines & [exclude-square ] ]
-  (set
-   (take num-swines
-	 (shuffle (for [square (iterate-board)
-                        :when (not
-                               (squares-are-adjacent square exclude-square))]
-                    square)))))
-
-(defn is-swine? [board pos]
-  (contains? board pos))
-
-
-
-(defprotocol IBoard
-  "A Swinemeeper Board"
-  (get-width [this] )
-  (get-height [this] )
-  (is-swine [ this [x y] ]))
-
-(deftype CBoard [width height swines]
-  IBoard
-  (get-width [this] width)
-  (get-height [this] height)
-  (is-swine [this [x y]]
-    (contains? swines [x y]))
-  Object
-  (toString [this] (str "width: " width " height: " height)))
-
-(defn neighbours-fn [x y]
-  (filter
-   (fn [ [x y] ] (and (>= x 0)
-		      (< x (width @game))
-		      (>= y 0)
-		      (< y (height @game))))
-   [[(- x 1) (- y 1)]
-    [ x (- y 1)]
-    [ (+ x 1) (- y 1)]
-    [ (- x 1) y]
-    [ (+ x 1) y]
-    [ (- x 1) (+ y 1)]
-    [ x (+ y 1)]
-    [ (+ x 1) (+ y 1) ]]))
-
-(def neighbours (atom (memoize neighbours-fn)))
-
-(defn num-surrounding [x y]
-  (count (filter #(is-swine? (board @game) %) (@neighbours x y))))
-
-(defn try-square [x y]
-  (if (is-swine? (board @game) [x y])
-    :swine
-    (num-surrounding x y)))
-
-(defn print-board []
-  (doseq [y (iterate-height)]
-    (doseq [x (iterate-width)]
-      (print (square-str (try-square x y))))
-    (println)))
 
 ;; View functions
 
@@ -156,12 +79,6 @@
 (defn num-unknown-neighbours [view [x y]]
   (num-neighbours= view [x y] :unknown))
 
-(defn square-str [sq]
-  (str (condp = sq
-	 :swine   "X"
-	 :unknown "."
-	 sq)))
-
 (defn view-square-str [view x y]
   (square-str (view-square-at view x y)))
 
@@ -174,7 +91,7 @@
 (defn countp [view p]
   "Count the number of view squares that match a predicate"
   (count
-   (for [square (iterate-board)
+   (for [square (iterate-board (board @game))
          :when (p (view-square-at view square))]
      nil)))
 
@@ -203,7 +120,7 @@
   (if (= coords [])
     view
     (let [[x y] (first coords)
-	  square (try-square x y)
+	  square (try-square (board @game) [x y])
 	  new-view (assoc-in view [y x] square)
 	  new-coords (if (and
 			  (= (view-square-at view [x y]) :unknown)
@@ -217,7 +134,6 @@
     :unknown (assoc-in view [y x] :marked)
     :marked  (assoc-in view [y x] :unknown)
     view))
-
 (defn mark-list [view coords]
   (if (= coords [])
     view
@@ -239,8 +155,8 @@
   (str "Remaining Swines: " (remaining-swines @game)))
 
 (defn fully-reveal-board-on-lose [board view]
-  (vec (for [y (iterate-height)]
-    (vec (for [x (iterate-width)]
+  (vec (for [y (iterate-height board)]
+    (vec (for [x (iterate-width board)]
        (condp = (view-square-at view [x y])
          :marked (if (not (is-swine? board [x y]))
                    :incorrectly-marked
@@ -249,12 +165,12 @@
          :unknown (if (is-swine? board [x y])
                     :swine
                     :unknown)
-         (try-square x y)))))))
+         (try-square board [x y])))))))
 
 (defn fully-reveal-board-on-win [board view]
-  (vec (for [y (iterate-height)]
-    (vec (for [x (iterate-width)]
-      (let [square (try-square x y)]
+  (vec (for [y (iterate-height board)]
+    (vec (for [x (iterate-width board)]
+      (let [square (try-square board [x y])]
         (if (= square :swine) :marked square)))))))
 
 ; Game manpulation functions
@@ -285,7 +201,7 @@
     game))
 
 (defn game-create-board [game coords]
-  (assoc game :board (make-swines (width game)
+  (assoc game :board (make-board (width game)
                                   (height game)
                                   (num-swines game)
                                   coords)

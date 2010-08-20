@@ -1,5 +1,5 @@
 (ns gui
-  (:use swinemeeper)
+  (:use swinemeeper board)
   (:gen-class))
 
 (import
@@ -161,8 +161,8 @@
                   (Dimension. (* (width @game ) (square-width @game))
                               (* (height @game) (square-height @game))))
 		(paintComponent [g]
-		  (doseq [y (iterate-height)
-			  x (iterate-width)]
+		  (doseq [y (range (height @game))
+			  x (range (width @game))]
 		    (paint-square g x y pointless-panel (view @game) images))))]
     (add-watch game "view updated" 
                (fn [k r o n]
@@ -239,5 +239,4 @@
   (when (not (nil? @frame))
     (.repaint @frame))
   ; TODO sort this out a bit better
-  (reset! neighbours (memoize neighbours-fn)))
-
+  (reset! neighbours (make-neighbours (width @game) (height @game))))
