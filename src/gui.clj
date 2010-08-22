@@ -1,5 +1,5 @@
 (ns gui
-  (:use swinemeeper board view)
+  (:use swinemeeper board view game)
   (:gen-class))
 
 (import
@@ -19,9 +19,11 @@
 (defn left-click [coords]
   ; TODO slight hack here but not sure what to do... if the game is not
   ;      in progress then need to start the game
-  (when (= (state @game) :pregame)
+  (println "in left-click" (.view @game))
+  (when (= (.state @game) :pregame)
     (swap! game game-create-board coords))
-  (when (= (state @game) :game-playing)
+  (println "in left-click2" (.view @game))
+  (when (= (.state @game) :game-playing)
     (swap! game game-reveal-square coords)))
 
 (defn double-click [coords]
@@ -70,11 +72,11 @@
    8 (load-image "8.png")})
 
 (defn paint-square [#^Graphics g x y panel view images]
-  (let [sx (* x (square-width @game))
-	sy (* y (square-height @game))
+  (let [sx (* x (.square-width @game))
+	sy (* y (.square-height @game))
 	square (.square-at view [x y])]
     (.drawImage g (images square) sx sy 
-                (square-width @game) (square-height @game)
+                (.square-width @game) (.square-height @game)
 		Color/BLACK nil)))
 
 ;; HACK TODO sort out
@@ -129,6 +131,9 @@
     (.pack dialog)
     (.setVisible dialog true)))
 
+(defn #^String format-remaining-swines []
+  (str "Remaining Swines: " (.remaining-swines @game)))
+
 (defn make-remaining-swines-panel []
   (let [label (JLabel. (format-remaining-swines))
         panel (JPanel.)]
@@ -136,12 +141,12 @@
     (add-watch game
                "remaining-swines"
                (fn [k r o n]
-                 (when (= (state @game) :game-playing)
+                 (when (= (.state @game) :game-playing)
                    (.setText label (format-remaining-swines)))))
     (add-watch game
                "game state"
       (fn [k r o n]
-        (condp = (state n)
+        (condp = (.state n)
           :game-lost (SwingUtilities/invokeLater
                       (fn []
                         (.setText label "You lose, sucker!")
@@ -153,17 +158,19 @@
           nil)))
     panel))
 
+
+
 (defn make-board-panel []
   (let [pointless-panel (JPanel.)
         images (load-images)
 	panel (proxy [JPanel] []
 		(getPreferredSize []
-                  (Dimension. (* (width @game ) (square-width @game))
-                              (* (height @game) (square-height @game))))
+                  (Dimension. (* (.width @game ) (.square-width @game))
+                              (* (.height @game) (.square-height @game))))
 		(paintComponent [g]
-		  (doseq [y (range (height @game))
-			  x (range (width @game))]
-		    (paint-square g x y pointless-panel (view @game) images))))]
+		  (doseq [y (range (.height @game))
+			  x (range (.width @game))]
+		    (paint-square g x y pointless-panel (.view @game) images))))]
     (add-watch game "view updated" 
                (fn [k r o n]
                  (if (not= o n)
@@ -239,4 +246,4 @@
   (when (not (nil? @frame))
     (.repaint @frame))
   ; TODO sort this out a bit better
-  (reset! neighbours (make-neighbours (width @game) (height @game))))
+  (reset! neighbours (make-neighbours (.width @game) (.height @game))))

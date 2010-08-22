@@ -50,6 +50,7 @@
 
 (defn countp [view p]
   "Count the number of view squares that match a predicate"
+  (println "in countp" view)
   (count
    (for [square (iterate-board (.board view))
          :when (p (.square-at view square))]
