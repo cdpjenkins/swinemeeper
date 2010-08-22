@@ -1,5 +1,5 @@
 (ns gui
-  (:use swinemeeper board)
+  (:use swinemeeper board view)
   (:gen-class))
 
 (import
@@ -72,7 +72,7 @@
 (defn paint-square [#^Graphics g x y panel view images]
   (let [sx (* x (square-width @game))
 	sy (* y (square-height @game))
-	square (view-square-at view [x y])]
+	square (.square-at view [x y])]
     (.drawImage g (images square) sx sy 
                 (square-width @game) (square-height @game)
 		Color/BLACK nil)))
