@@ -1,5 +1,5 @@
 (ns gui
-  (:use swinemeeper board view game)
+  (:use board view game)
   (:gen-class))
 
 (import
@@ -12,17 +12,30 @@
                JButton JDialog JFrame JLabel JPanel JRadioButton
                SwingUtilities))
 
+; Atoms for state stuff
+(def game (atom nil))
+(def quit-fn (atom nil))
+(def frame (atom nil))
+
+; Utility Functions
+
+;; Mappings screen-coords <--> board-coords
+(defn screen-to-board [ [x y] ]
+  [ (int (/ x (.square-width @game))) (int (/ y (.square-height @game))) ] )
+
+(defn board-to-screen [ [x y] ]
+  [ (* x (.square-width @game)) (* y (.square-height @game)) ])
+
+
 ;; GUI stuff
 
 ;  GUI event handlers
 
 (defn left-click [coords]
-  ; TODO slight hack here but not sure what to do... if the game is not
+  ; TODO slight hack here but not surey what to do... if the game is not
   ;      in progress then need to start the game
-  (println "in left-click" (.view @game))
   (when (= (.state @game) :pregame)
     (swap! game game-create-board coords))
-  (println "in left-click2" (.view @game))
   (when (= (.state @game) :game-playing)
     (swap! game game-reveal-square coords)))
 
@@ -158,8 +171,6 @@
           nil)))
     panel))
 
-
-
 (defn make-board-panel []
   (let [pointless-panel (JPanel.)
         images (load-images)
@@ -210,8 +221,7 @@
       (.pack)
       (.show))))
 
-;(def game (atom nil))
-(def frame (atom nil))
+
 
 (defn quit-jvm []
   (System/exit 0))

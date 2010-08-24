@@ -26,7 +26,6 @@
   (> (count-swines (.view game)) 0))
 
 (defn is-game-won [game]
-  (println "in i-=game-won" (.view game))
   (= (count-revealed (.view game))
      (- (* (.width game) (.height game)) (.num-swines game))))
 
@@ -38,7 +37,6 @@
 
 (defn check-for-endgame [game]
   "Checks for the end of the game and updates game state."
-  (println "in check-for-endgame" (.view game))
   (let [new-state (new-game-state game)]
     (condp = new-state
       :game-won (assoc game :view (fully-reveal-board-on-win (.view game))
@@ -52,7 +50,6 @@
     :game-playing
     (let [new-view (uncover (.view game) [coords])
           new-game (assoc game :view new-view)]
-      (println "in game-reveal-square new-view:" new-view)
       (check-for-endgame new-game))
     game))
 

@@ -12,19 +12,7 @@
 ;(set! *warn-on-reflection* true)
 
 (ns swinemeeper
+  (:use board view game))
 
-  (:use board view game)
-  (:gen-class))
 
-(def game (atom nil))
-
-(def quit-fn (atom nil))
-
-;; Mappings screen-coords <--> board-coords
-; TODO move to GUI
-(defn screen-to-board [ [x y] ]
-  [ (int (/ x (.square-width @game))) (int (/ y (.square-height @game))) ] )
-
-(defn board-to-screen [ [x y] ]
-  [ (* x (.square-width @game)) (* y (.square-height @game)) ])
 

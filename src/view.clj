@@ -1,13 +1,13 @@
 (ns view
   (:use board))
 
-(defprotocol IView
+(defprotocol IViewModel
   "A View onto a Swinemeeper Board"
   (square-at [this [x y] ])
   (assoc-square [this [x y] value]))
 
-(defrecord CView [width height view board]
-  IView
+(defrecord CViewModel [width height view board]
+  IViewModel
   (square-at [ this [x y] ]
     (( (.view this) y) x))
   (assoc-square [this [x y] value]
@@ -21,7 +21,7 @@
   (toString [this] (str "width: " width " height: " height)))
 
 (defn make-empty-view [width height board]
-  (CView. width
+  (CViewModel. width
 	  height
 	  (vec (for [y (range height)]
 	    (vec (for [x (range width)]
@@ -43,14 +43,13 @@
   (square-str (.square-at view [x y])))
 
 (defn print-view [view]
-  (doseq [y (iterate-height)]
-    (doseq [x (iterate-width)]
+  (doseq [y (iterate-height (.board view))]
+    (doseq [x (iterate-width (.board view))]
       (print (view-square-str view x y)))
     (println)))
 
 (defn countp [view p]
   "Count the number of view squares that match a predicate"
-  (println "in countp" view)
   (count
    (for [square (iterate-board (.board view))
          :when (p (.square-at view square))]
@@ -66,8 +65,6 @@
   (countp view #(= % :swine)))
 
 ;; View manipulation fns
-
-
 
 (defn uncover [view coords]
   (if (= coords [])

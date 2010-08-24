@@ -1,26 +1,41 @@
 (ns board)
 
-(defprotocol IBoard
-  "A Swinemeeper Board"
-  (is-swine? [ this [x y] ]))
+(declare neighbours square-str)
 
-(deftype CBoard [width height swines]
-  IBoard
+(defprotocol IBoardModel
+  "A Swinemeeper Board"
+  (is-swine? [ this [x y] ])
+  )
+
+(defrecord CBoardModel [width height swines]
+  IBoardModel
   (is-swine? [this [x y]]
     (contains? swines [x y]))
   Object
   (toString [this] (str "width: " width " height: " height)))
 
-(defn iterate-width [board]
-  (range (.width board)))
 
+(defn iterate-width [board]
+  (range (.width board)))  
 (defn iterate-height [board]
   (range (.height board)))
-
 (defn iterate-board [board]
   (for [y (iterate-height board)
-        x (iterate-width board)]
+	x (iterate-width board)]
     [x y]))
+(defn num-surrounding [board [x y]]
+  (count (filter #(.is-swine? board %) (@neighbours x y))))
+
+(defn try-square [board [x y]]
+  (if (.is-swine? board [x y])
+    :swine
+    (num-surrounding board [x y])))
+
+(defn print-board [board]
+  (doseq [y (iterate-height board)]
+    (doseq [x (iterate-width board)]
+      (print (square-str (try-square board [x y]))))
+    (println)))
 
 (defn squares-are-adjacent [ [x1 y1] [x2 y2] ]
   (and
@@ -38,22 +53,7 @@
                     square)))))
 
 (defn make-board [width height num-swines exclude-square]
-  (CBoard. width height (make-swines width height num-swines exclude-square)))
-
-(defn neighbours-fn [x y]
-;  (filter
-;   (fn [ [x y] ] (and (>= x 0)
-;		      (< x (width @game))
-;		      (>= y 0)
-;		      (< y (height @game))))
-   [[(- x 1) (- y 1)]
-    [ x (- y 1)]
-    [ (+ x 1) (- y 1)]
-    [ (- x 1) y]
-    [ (+ x 1) y]
-    [ (- x 1) (+ y 1)]
-    [ x (+ y 1)]
-    [ (+ x 1) (+ y 1) ]])
+  (CBoardModel. width height (make-swines width height num-swines exclude-square)))
 
 (defn make-neighbours [width height]
   (memoize
@@ -76,22 +76,8 @@
 ; default
 (def neighbours (atom (make-neighbours 10 10)))
 
-(defn num-surrounding [board [x y]]
-  (count (filter #(.is-swine? board %) (@neighbours x y))))
-
-(defn try-square [board [x y]]
-  (if (.is-swine? board [x y])
-    :swine
-    (num-surrounding board [x y])))
-
 (defn square-str [sq]
   (str (condp = sq
 	 :swine   "X"
 	 :unknown "."
 	 sq)))
-
-(defn print-board [board]
-  (doseq [y (iterate-height board)]
-    (doseq [x (iterate-width board)]
-      (print (square-str (try-square board [x y]))))
-    (println)))
