@@ -26,24 +26,20 @@
 (defn board-to-screen [ [x y] ]
   [ (* x (.square-width @game)) (* y (.square-height @game)) ])
 
-
 ;; GUI stuff
 
 ;  GUI event handlers
 
 (defn left-click [coords]
-  ; TODO slight hack here but not surey what to do... if the game is not
-  ;      in progress then need to start the game
-  (when (= (.state @game) :pregame)
-    (swap! game game-create-board coords))
-  (when (= (.state @game) :game-playing)
-    (swap! game game-reveal-square coords)))
+  (swap! game game-left-click coords))
 
 (defn double-click [coords]
   (swap! game game-double-click coords))
 
 (defn right-click [coords]
   (swap! game game-flag coords))
+
+;
 
 (defn load-image [filename]
   (ImageIO/read (ClassLoader/getSystemResource filename)))
@@ -52,6 +48,7 @@
   `(proxy [ActionListener] []
      (actionPerformed [~e]
        ~@body)))
+
 (def images
   {:unknown "unknown.png"
    :swine "swine.png"
@@ -220,8 +217,6 @@
       (.setDefaultCloseOperation close-action)
       (.pack)
       (.show))))
-
-
 
 (defn quit-jvm []
   (System/exit 0))

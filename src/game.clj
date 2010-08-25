@@ -54,6 +54,7 @@
     game))
 
 (defn game-create-board [game coords]
+  (println "hoss")
   (let [board (make-board (.width game)
 			  (.height game)
 			  (.num-swines game)
@@ -62,6 +63,18 @@
     (assoc game :board board
 	        :view new-view
 		:state :game-playing)))
+
+(defn create-board-if-pregame [game coords]
+  (println (.state game))
+  (if (= (.state game) :pregame)
+    (game-create-board game coords)
+    game))
+
+;; Functions that support GUI interaction
+(defn game-left-click [game coords]
+  (println "huss")
+  (let [new-game (create-board-if-pregame game coords)]
+    (game-reveal-square new-game coords)))
 
 (defn game-double-click [game coords]
   (if (= (.state game) :game-playing)
@@ -74,3 +87,4 @@
     (assoc game :view new-view
 	        :remaining-swines
 		  (num-swines-unmarked new-view (.num-swines game)))))
+

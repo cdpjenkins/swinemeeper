@@ -6,17 +6,16 @@
   (square-at [this [x y] ])
   (assoc-square [this [x y] value]))
 
-(defrecord CViewModel [width height view board]
+(defrecord CViewModel [width height grid board]
   IViewModel
   (square-at [ this [x y] ]
-    (( (.view this) y) x))
+    (( grid y) x))
   (assoc-square [this [x y] value]
     (assoc this :width width
 	        :height height
-		:view (assoc-in view [y x] value)
+		:grid (assoc-in grid [y x] value)
 		:board board))
-					;    (CView. width height (assoc-in view [y x] value) board))
-	
+
   Object
   (toString [this] (str "width: " width " height: " height)))
 
@@ -98,7 +97,7 @@
 
 (defn fully-reveal-board-on-lose [view]
   (let [board (.board view)]
-    (assoc view :view (vec (for [y (iterate-height board)]
+    (assoc view :grid (vec (for [y (iterate-height board)]
   		        (vec (for [x (iterate-width board)]
 		          (condp = (.square-at view [x y])
 			      :marked (if (not (is-swine? board [x y]))
@@ -112,7 +111,7 @@
 
 (defn fully-reveal-board-on-win [view]
   (let [board (.board view)]
-    (assoc view :view (vec (for [y (iterate-height board)]
+    (assoc view :grid (vec (for [y (iterate-height board)]
 	                (vec (for [x (iterate-width board)]
 			  (let [square (try-square board [x y])]
 			    (if (= square :swine) :marked square)))))))))
