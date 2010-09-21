@@ -72,7 +72,6 @@
 
 ;; Functions that support GUI interaction
 (defn game-left-click [game coords]
-  (println "huss")
   (let [new-game (create-board-if-pregame game coords)]
     (game-reveal-square new-game coords)))
 
@@ -87,4 +86,3 @@
     (assoc game :view new-view
 	        :remaining-swines
 		  (num-swines-unmarked new-view (.num-swines game)))))
-

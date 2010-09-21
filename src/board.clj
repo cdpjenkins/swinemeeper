@@ -14,15 +14,17 @@
   Object
   (toString [this] (str "width: " width " height: " height)))
 
-
 (defn iterate-width [board]
   (range (.width board)))  
+
 (defn iterate-height [board]
   (range (.height board)))
+
 (defn iterate-board [board]
   (for [y (iterate-height board)
 	x (iterate-width board)]
     [x y]))
+
 (defn num-surrounding [board [x y]]
   (count (filter #(.is-swine? board %) (@neighbours x y))))
 
