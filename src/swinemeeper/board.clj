@@ -29,7 +29,7 @@
    (<= (Math/abs (- x1 x2)) 1)
    (<= (Math/abs (- y1 y2)) 1)))
 
-(defn make-board [width height num-swines exclude-square]
+(defn make-swines [width height num-swines exclude-square]
   (into
    (apply hash-map
           (interleave
@@ -64,18 +64,18 @@
 ;; TODO sort this out
 (def neighbours (atom (make-neighbours 15 10)))
 
-(defn is-swine [board pos]
-  (= (board pos) :swine))
+(defn is-swine [swines pos]
+  (= (swines pos) :swine))
 
-(defn num-surrounding [board pos]
-  (count (filter #(is-swine board %) (@neighbours pos))))
+(defn num-surrounding [swines pos]
+  (count (filter #(is-swine swines %) (@neighbours pos))))
 
-(defn try-square [board pos]
-  (if (is-swine board pos)
+(defn try-square [swines pos]
+  (if (is-swine swines pos)
     :swine
-    (num-surrounding board pos)))
+    (num-surrounding swines pos)))
 
-;; A view is a map from coord pair to either
+;; A board is a map from coord pair to either
 ;; :swine
 ;; :unknown
 ;; number - of swine neighbours
@@ -90,55 +90,56 @@
 ;; :state           <-- {:game-playing, :game-won, :game-lost}
 ;; :remaining-swines
 
-(defn make-view [board]
+(defn make-board [swines width height]
   (into
    (apply hash-map
           (interleave
-           (for [y (range (:height board))
-                 x (range (:width board))]
+           (for [y (range height)
+                 x (range width)]
              [x y])
            (repeat :unknown)))
-   {:board board
-    :width (:width board)
-    :height (:height board)
-    :num-swines (- (count board) 2) ; HACK
+   {
+    :swines swines
+    :width width
+    :height height
+    :num-swines (- (count swines) 2) ; HACK
     :state :game-playing
-    :remaining-swines (- (count board) 2)})) ; HACK
+    :remaining-swines (- (count swines) 2)})) ; HACK
 
-(defn print-view [view]
-  (doseq [y (range (:height (:board view)))]
-    (doseq [x (range (:width (:board view)))]
-      (print (square-str ( view [x y]))))
+(defn print-board [board]
+  (doseq [y (range (:height board))]
+    (doseq [x (range (:width board))]
+      (print (square-str ( board [x y]))))
     (println)))
 
-(defn num-neighbours= [view [x y] value]
-  (count (filter #(= % value) (map view (@neighbours [x y])))))
+(defn num-neighbours= [board [x y] value]
+  (count (filter #(= % value) (map board (@neighbours [x y])))))
 
-(defn num-marked-neighbours [view [x y]]
-  (num-neighbours= view [x y] :marked))
+(defn num-marked-neighbours [board [x y]]
+  (num-neighbours= board [x y] :marked))
 
-(defn num-unknown-neighbours [view [x y]]
-  (num-neighbours= view [x y] :unknown))
+(defn num-unknown-neighbours [board [x y]]
+  (num-neighbours= board [x y] :unknown))
 
-(defn countp [view p]
-  "Count the number of view squares that match a predicate"
+(defn countp [board p]
+  "Count the number of board squares that match a predicate"
   (count
-   (for [square (iterate-board (:board view))
-         :when (p (view square))]
+   (for [square (iterate-board board)
+         :when (p (board square))]
      nil)))
 
-(defn count-marked [view]
-  (countp view #(= % :marked)))
+(defn count-marked [board]
+  (countp board #(= % :marked)))
 
-(defn count-revealed [view]
-  (countp view #(number? %)))
+(defn count-revealed [board]
+  (countp board #(number? %)))
 
-(defn count-swines [view]
-  (countp view #(or (= % :swine)
+(defn count-swines [board]
+  (countp board #(or (= % :swine)
                     (= % :exploding-swine))))
 
-;; View manipulation functions
-(defn uncover [view coords]
+;; Board manipulation functions
+(defn uncover [board coords]
   (let [ [x y] (first coords)
 
          ]
@@ -146,44 +147,44 @@
     )
   )
 
-(defn uncover [view poses]
+(defn uncover [board poses]
   (if (empty? poses)
-    view
+    board
     (let [pos (first poses)
-          square (try-square (:board view) pos)
-          new-view (assoc view pos square)
+          square (try-square (:swines board) pos)
+          new-board (assoc board pos square)
           ; TODO recursively check squares if this is a zero
           new-poses (if (and
-                         (= (view pos) :unknown)
+                         (= (board pos) :unknown)
                          (= square 0))
                       (concat (rest poses) (@neighbours pos))
                       (rest poses))]
-      (recur new-view new-poses))))
+      (recur new-board new-poses))))
 
-(defn mark [view [x y]]
-  (condp = (view [x y])
-    :unknown (assoc view [x y] :marked)
-    :marked  (assoc view [x y] :unknown)
-    view))
+(defn mark [board [x y]]
+  (condp = (board [x y])
+    :unknown (assoc board [x y] :marked)
+    :marked  (assoc board [x y] :unknown)
+    board))
 
-(defn double-dude [view [x y]]
+(defn double-dude [board [x y]]
   ; TODO rename to something sensible
-  (let [square (view [x y])]
+  (let [square (board [x y])]
     (if (number? square)
-      (if (= square (num-marked-neighbours view [x y]))
-        (uncover view
-                 (filter #(= (view %) :unknown)
+      (if (= square (num-marked-neighbours board [x y]))
+        (uncover board
+                 (filter #(= (board %) :unknown)
                          (@neighbours [x y])))
-        view)
-      view)))
+        board)
+      board)))
 
-(defn fully-reveal-board-on-lose [view]
+(defn fully-reveal-board-on-lose [board]
   ;; TODO wrongly placed flags
   ;; TODO exploding swine on the place you just clicked
-  (let [board (:board view)]
-    (into view
+  (let [swines (:swines board)]
+    (into board
           (for [[x y] (iterate-board board)]
-            [[x y] (try-square board [x y])]))
+            [[x y] (try-square swines [x y])]))
 
     ;; (assoc view :grid (vec (for [y (iterate-height board)]
     ;;     	        (vec (for [x (iterate-width board)]
@@ -198,34 +199,34 @@
     ;;     		      (try-square board [x y])))))))
     ))
 
-(defn fully-reveal-board-on-win [view]
-(let [board (:board view)]
-    (into view
+(defn fully-reveal-board-on-win [board]
+(let [swines (:swines board)]
+    (into board
           (for [[x y] (iterate-board board)]
-            [[x y] (try-square board [x y])]))))
+            [[x y] (try-square swines [x y])]))))
 
-(defn num-swines-unmarked [view]
-  (- (:num-swines view) (count-marked view)))
+(defn num-swines-unmarked [board]
+  (- (:num-swines board) (count-marked board)))
 
-(defn is-game-lost [view]
-  (> (count-swines view) 0))
+(defn is-game-lost [board]
+  (> (count-swines board) 0))
 
-(defn is-game-won [view]
-  (= (count-revealed view)
-     (- (* (:width view) (:height view)) (:num-swines view))))
+(defn is-game-won [board]
+  (= (count-revealed board)
+     (- (* (:width board) (:height board)) (:num-swines board))))
 
-(defn new-game-state [view]
+(defn new-game-state [board]
   (cond
-    (is-game-won view)  :game-won
-    (is-game-lost view) :game-lost
+    (is-game-won board)  :game-won
+    (is-game-lost board) :game-lost
     :else :game-playing))
 
-(defn check-for-endgame [view]
+(defn check-for-endgame [board]
   "Checks for the end of the game and updates game state."
-  (let [new-state (new-game-state view)]
+  (let [new-state (new-game-state board)]
     (condp = new-state
-      :game-won (assoc (fully-reveal-board-on-win view)
+      :game-won (assoc (fully-reveal-board-on-win board)
                   :state new-state)
-      :game-lost (assoc (fully-reveal-board-on-lose view)
+      :game-lost (assoc (fully-reveal-board-on-lose board)
                    :state new-state)
-      (assoc view :state new-state))))
+      (assoc board :state new-state))))
