@@ -4,6 +4,7 @@
 ;; :width
 ;; :height
 
+
 (defn- square-str [sq]
   (str (condp = sq
 	 :swine   "X"
@@ -28,7 +29,7 @@
    (<= (Math/abs (- x1 x2)) 1)
    (<= (Math/abs (- y1 y2)) 1)))
 
-(defn make-swines [width height num-swines exclude-square]
+(defn make-board [width height num-swines exclude-square]
   (into
    (apply hash-map
           (interleave
@@ -80,22 +81,33 @@
 ;; number - of swine neighbours
 ;;
 ;; also has the keys :width :height
-;; :swinefield <-- that's a reference to the swinefield... dunno if we will need this
+;; :board <-- that's a reference to the swinefield... dunno if we will need this
 ;; ultimately... alternative is to pass in a function that we call when we want to
 ;; see if something is a swine
-(defn make-view [swines]
+;; :width
+;; :height
+;; :num-swines
+;; :state           <-- {:game-playing, :game-won, :game-lost}
+;; :remaining-swines
+
+(defn make-view [board]
   (into
    (apply hash-map
           (interleave
-           (for [y (range (:height swines))
-                 x (range (:width swines))]
+           (for [y (range (:height board))
+                 x (range (:width board))]
              [x y])
            (repeat :unknown)))
-   {:swines swines}))
+   {:board board
+    :width (:width board)
+    :height (:height board)
+    :num-swines (- (count board) 2) ; HACK
+    :state :game-playing
+    :remaining-swines (- (count board) 2)})) ; HACK
 
 (defn print-view [view]
-  (doseq [y (range (:height (:swines view)))]
-    (doseq [x (range (:width (:swines view)))]
+  (doseq [y (range (:height (:board view)))]
+    (doseq [x (range (:width (:board view)))]
       (print (square-str ( view [x y]))))
     (println)))
 
@@ -111,7 +123,7 @@
 (defn countp [view p]
   "Count the number of view squares that match a predicate"
   (count
-   (for [square (iterate-board (:swines view))
+   (for [square (iterate-board (:board view))
          :when (p (view square))]
      nil)))
 
@@ -122,7 +134,8 @@
   (countp view #(number? %)))
 
 (defn count-swines [view]
-  (countp view #(= % :swine)))
+  (countp view #(or (= % :swine)
+                    (= % :exploding-swine))))
 
 ;; View manipulation functions
 (defn uncover [view coords]
@@ -137,7 +150,7 @@
   (if (empty? poses)
     view
     (let [pos (first poses)
-          square (try-square (:swines view) pos)
+          square (try-square (:board view) pos)
           new-view (assoc view pos square)
           ; TODO recursively check squares if this is a zero
           new-poses (if (and
@@ -167,7 +180,7 @@
 (defn fully-reveal-board-on-lose [view]
   ;; TODO wrongly placed flags
   ;; TODO exploding swine on the place you just clicked
-  (let [board (:swines view)]
+  (let [board (:board view)]
     (into view
           (for [[x y] (iterate-board board)]
             [[x y] (try-square board [x y])]))
@@ -186,7 +199,33 @@
     ))
 
 (defn fully-reveal-board-on-win [view]
-(let [board (:swines view)]
+(let [board (:board view)]
     (into view
           (for [[x y] (iterate-board board)]
             [[x y] (try-square board [x y])]))))
+
+(defn num-swines-unmarked [view]
+  (- (:num-swines view) (count-marked view)))
+
+(defn is-game-lost [view]
+  (> (count-swines view) 0))
+
+(defn is-game-won [view]
+  (= (count-revealed view)
+     (- (* (:width view) (:height view)) (:num-swines view))))
+
+(defn new-game-state [view]
+  (cond
+    (is-game-won view)  :game-won
+    (is-game-lost view) :game-lost
+    :else :game-playing))
+
+(defn check-for-endgame [view]
+  "Checks for the end of the game and updates game state."
+  (let [new-state (new-game-state view)]
+    (condp = new-state
+      :game-won (assoc (fully-reveal-board-on-win view)
+                  :state new-state)
+      :game-lost (assoc (fully-reveal-board-on-lose view)
+                   :state new-state)
+      (assoc view :state new-state))))
