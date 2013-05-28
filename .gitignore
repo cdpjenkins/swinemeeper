@@ -4,4 +4,5 @@ classes
 *~
 .lein-failures
 target/
+*.js
 

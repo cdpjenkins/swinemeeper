@@ -1,8 +1,15 @@
 (ns swinemeeper.core
-  (:use swinemeeper.board
-        [compojure.core :only (defroutes GET)]
-        [ring.adapter.jetty :as ring]
-        [hiccup.core]))
+  (:use
+;   swinemeeper.board
+   compojure.core
+   [ring.adapter.jetty :as ring]
+   [hiccup.core]
+   [hiccup.middleware :only (wrap-base-url)])
+  (:require [compojure.route :as route]
+            [compojure.handler :as handler]
+            [compojure.response :as response]))
+  ;; (:require [compojure.handler :as handler]
+  ;;           [compojure.route :as route])
 
 (defn index []
   (html
@@ -15,11 +22,30 @@
      [:div {:id "board"}
       "This is where the board would go. If there was one"]]]))
 
-(defroutes routes
-  (GET "/" [] (index)))
+(defroutes main-routes
+  (GET "/" [] (index))
+  (route/resources "/")
+  (route/not-found "Page not found"))
+
+(def app
+  (-> (handler/site main-routes)
+      (wrap-base-url)))
+
+;; (defroutes myroutes
+;;   (GET "/" [] (index))
+;;   ;; to serve static pages saved in resources/public directory
+;; ;  (route/resources "/")
+;;   ;; if page is not found
+;; ;  (route/not-found "Page not found")
+;;   )
+
+
+;; (def handler
+;;   (handler/site myroutes))
+
 
 (defn make-server []
-  (let [s (atom (run-jetty (var routes) {:port 8080 :join? false}))]
+  (let [s (atom (run-jetty (var app) {:port 8080 :join? false}))]
 ;   (.stop @s)
    s))
 
