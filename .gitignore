@@ -5,4 +5,9 @@ classes
 .lein-failures
 target/
 *.js
+.DS_Store
+.repl-google-chrome-err
+.repl-google-chrome-out
+out/
+resources/public/js/script.js
 

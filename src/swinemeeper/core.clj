@@ -7,9 +7,19 @@
    [hiccup.middleware :only (wrap-base-url)])
   (:require [compojure.route :as route]
             [compojure.handler :as handler]
-            [compojure.response :as response]))
+            [compojure.response :as response]
+            [hiccup
+             [page :refer [html5]]
+             [page :refer [include-js]]
+             [element :refer [javascript-tag]]
+             ]))
   ;; (:require [compojure.handler :as handler]
   ;;           [compojure.route :as route])
+
+(defn- run-clojurescript [path init]
+  (list
+    (include-js path)
+    (javascript-tag init)))
 
 (defn index []
   (html
@@ -20,7 +30,17 @@
      [:h1 "Hello!"]
      "This is about it, to be honest"
      [:div {:id "board"}
-      "This is where the board would go. If there was one"]]]))
+      "This is where the board would go. If there was one"]
+
+     (for [i (range 9)]
+       [:img {:src (str "images/" i ".png")
+              :id (str i)}])
+     ;(include-js "/js/script.js")
+     (run-clojurescript
+        "/js/script.js"
+        "swinemeeper.cljs.repl.connect()")
+
+     ]]))
 
 (defroutes main-routes
   (GET "/" [] (index))
