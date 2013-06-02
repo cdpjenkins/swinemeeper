@@ -8,6 +8,7 @@ target/
 .DS_Store
 .repl-google-chrome-err
 .repl-google-chrome-out
+repl/
 out/
 resources/public/js/script.js
 
