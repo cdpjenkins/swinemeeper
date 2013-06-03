@@ -28,7 +28,11 @@
                            [:tr
                             (for [x (range 9)]
                               [:td
-                               [:img {:src (str "images/" (mod (+ x y) 9) ".png")}]])])]))))
+                               [:img {:src (str "images/" (mod (+ x y) 9) ".png")
+                                      :id (str x "_" y)}]])])])))
+  (doseq [x (range 9)
+          y (range 9)]
+    (ev/listen! (dom/by-id (str x "_" y)) :click #(dom/log (str "You clicked on " x "_" y)))))
 
 (defn do-stuff []
   (init)
