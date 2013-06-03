@@ -3,6 +3,7 @@
                    [org.clojure/clojure-contrib "1.2.0"]
                    [compojure "1.0.4"]
                    [hiccup "1.0.0"]
+                   [hiccups "0.2.0"]
 ;                   [ring/ring-core "0.2.3"]
                    [ring/ring-jetty-adapter "0.2.3"]
                    [domina "1.0.2-SNAPSHOT"]]

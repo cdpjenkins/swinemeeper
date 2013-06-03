@@ -38,8 +38,7 @@
      ;(include-js "/js/script.js")
      (run-clojurescript
         "/js/script.js"
-        "swinemeeper.cljs.repl.connect();
-         swinemeeper.cljs.script.init()")
+        "swinemeeper.cljs.repl.connect()")
 
 
      ]]))
