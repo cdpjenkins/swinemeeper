@@ -1,9 +1,12 @@
 (ns swinemeeper.cljs.script
   (:require [domina :as dom]
             [domina.events :as ev]
-            [hiccups.runtime :as hiccupsrt])
+            [hiccups.runtime :as hiccupsrt]
+            [shoreleave.remotes.http-rpc :refer [remote-callback]]
+            )
   (:require-macros [hiccups.core :as h]))
 
+(dom/log "prrrrr!")
 (.write js/document "Hello, ClojureScript!")
 
 
@@ -15,6 +18,8 @@
 (defn clicked [x]
   (dom/log (str "You clicked on " x))
   )
+
+(dom/log "moo")
 
 (defn ^:export init []
   (if (and js/document
@@ -32,7 +37,17 @@
                                       :id (str x "_" y)}]])])])))
   (doseq [x (range 9)
           y (range 9)]
-    (ev/listen! (dom/by-id (str x "_" y)) :click #(dom/log (str "You clicked on " x "_" y)))))
+    (ev/listen! (dom/by-id (str x "_" y)) :click #((dom/log (str "You clicked on " x "_" y))
+                                                   (dom/log "waaa")
+                                                   (remote-callback :add-me-do
+                                                                    [x y]
+
+                                                                    (fn [result]
+                                                                      (dom/log "husssss!")
+                                                                      (dom/log (str "Total is " result))))
+
+                                                   ))
+    ))
 
 (defn do-stuff []
   (init)

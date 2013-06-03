@@ -6,7 +6,9 @@
                    [hiccups "0.2.0"]
 ;                   [ring/ring-core "0.2.3"]
                    [ring/ring-jetty-adapter "0.2.3"]
-                   [domina "1.0.2-SNAPSHOT"]]
+                   [domina "1.0.2-SNAPSHOT"]
+                   [shoreleave/shoreleave-remote-ring "0.3.0"]
+                   [shoreleave/shoreleave-remote "0.3.0"]]
 
     :plugins [[lein-cljsbuild "0.3.2"]
               [lein-ring "0.7.0"]]
@@ -38,7 +40,9 @@
 
                 :builds {
                          :dev
-                         {;; CLJS source code path
+                         {
+                          :incremental false
+                          ;; CLJS source code path
                           :source-paths ["cljs_src"]
 
                           :jar true
@@ -51,7 +55,7 @@
                 }
 
 
-    :ring {:handler swinemeeper.core/app}
+    :ring {:handler swinemeeper.remotes/remote-app}
     ;;    :main swinemeeper.core
 
 )
