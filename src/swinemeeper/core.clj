@@ -11,8 +11,7 @@
             [hiccup
              [page :refer [html5]]
              [page :refer [include-js]]
-             [element :refer [javascript-tag]]
-             ]))
+             [element :refer [javascript-tag]]]))
   ;; (:require [compojure.handler :as handler]
   ;;           [compojure.route :as route])
 
@@ -28,13 +27,12 @@
      [:title "I am a title"]]
     [:body
      [:h1 "Hello!"]
-     "This is about it, to be honest"
-     [:div {:id "board"}
-      "This is where the board would go. If there was one"]
+     [:div {:id "board"}]
+     [:div {:id "board-me-do:"}]
 
-     (for [i (range 9)]
-       [:img {:src (str "images/" i ".png")
-              :id (str i)}])
+     ;; (for [i (range 9)]
+     ;;   [:img {:src (str "images/" i ".png")
+     ;;          :id (str i)}])
      ;(include-js "/js/script.js")
      (run-clojurescript
         "/js/script.js"

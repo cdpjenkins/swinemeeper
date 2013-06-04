@@ -29,9 +29,9 @@
   (let [board (dom/by-id :board)]
     (dom/append! board (h/html
                         [:table
-                         (for [y (range 9)]
+                         (for [y (range 10)]
                            [:tr
-                            (for [x (range 9)]
+                            (for [x (range 10)]
                               [:td
                                [:img {:src (str "images/" (mod (+ x y) 9) ".png")
                                       :id (str x "_" y)}]])])])))
@@ -47,16 +47,27 @@
                                                                       (dom/log (str "Total is " result))))
 
                                                    ))
-    ))
+    )
+  (remote-callback :revealed-board
+                   []
+                   (fn [result]
+                     (dom/log result)
+                     (doseq [x (range 10)
+                             y (range 10)]
+                       (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (result [x y]) ".png"))
+                       )
+
+                     )))
 
 (defn do-stuff []
   (init)
   ;; (let [board (dom/by-id "board")]
   ;;       (dom/set-text! board "ston"))
-  (doseq [i (range 9)]
-    (let [img (dom/by-id (str i))]
-      (dom/log img)
-      (dom/set-attr! img "src" (str "images/" (mod (inc i) 9) ".png")))))
+  ;; (doseq [i (range 9)]
+  ;;   (let [img (dom/by-id (str i))]
+  ;;     (dom/log img)
+  ;;     (dom/set-attr! img "src" (str "images/" (mod (inc i) 9) ".png"))))
+  )
 
 (dom/log (str "Waaaaston"))
 (set! (.-onload js/window) do-stuff)
