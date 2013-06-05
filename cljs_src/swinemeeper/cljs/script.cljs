@@ -21,6 +21,13 @@
 
 (dom/log "moo")
 
+(defn update-thar-board [board]
+  (doseq [x (range 10)
+          y (range 10)]
+    (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png"))
+                       )
+  )
+
 (defn ^:export init []
   (if (and js/document
            (.-getElementById js/document))
@@ -39,13 +46,13 @@
           y (range 9)]
     (ev/listen! (dom/by-id (str x "_" y)) :click #((dom/log (str "You clicked on " x "_" y))
                                                    (dom/log "waaa")
-                                                   (remote-callback :add-me-do
+                                                   (remote-callback :click
                                                                     [x y]
-
                                                                     (fn [result]
                                                                       (dom/log "husssss!")
-                                                                      (dom/log (str "Total is " result))))
-
+                                                                      (dom/log result)
+                                                                      (update-thar-board result)
+                                                                      ))
                                                    ))
     )
   (remote-callback :revealed-board
