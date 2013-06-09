@@ -3,6 +3,7 @@
             [swinemeeper.board :as s]
             [compojure.handler :refer [site]]
             [ring.adapter.jetty :refer [run-jetty]]
+            [ring.middleware.session :as session]
             [shoreleave.middleware.rpc :refer [defremote wrap-rpc]]))
 
 (defremote add-me-do [x y]

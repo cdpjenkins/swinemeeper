@@ -8,6 +8,7 @@
   (:require [compojure.route :as route]
             [compojure.handler :as handler]
             [compojure.response :as response]
+            [ring.middleware.session :as session]
             [hiccup
              [page :refer [html5]]
              [page :refer [include-js]]
