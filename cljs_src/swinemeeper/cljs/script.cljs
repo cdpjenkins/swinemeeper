@@ -8,13 +8,9 @@
 
 (.write js/document "Hello, ClojureScript!")
 
-(defn update-thar-board [board]
-  (doseq [x (range 10)
-          y (range 10)]
-    (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png"))))
-
-(defn ^:export init []
+(defn create-board [board-state]
   (let [board (dom/by-id :board)]
+    (dom/destroy-children! board)
     (dom/append! board (h/html
                         [:table
                          (for [y (range 10)]
@@ -23,31 +19,38 @@
                               [:td
                                [:img {:src (str "images/:unknown.png")
                                       :id (str x "_" y)}]])])])))
+    (doseq [x (range 10)
+            y (range 10)]
+      (ev/listen! (dom/by-id (str x "_" y))
+                  :click
+                  (fn [event]
+                    (remote-callback :click
+                                     [x y]
+                                     (fn [result]
+                                       (update-thar-board result)))))
+      (ev/listen! (dom/by-id (str x "_" y))
+                  :contextmenu
+                  (fn [event]
+                    (remote-callback :right-click
+                                     [x y]
+                                     (fn [result]
+                                       (update-thar-board result)))
+                    (ev/prevent-default event)))))
+
+(defn update-thar-board [board]
   (doseq [x (range 10)
           y (range 10)]
-    (ev/listen! (dom/by-id (str x "_" y))
-                :click
-                (fn [event]
-                  (remote-callback :click
-                                   [x y]
-                                   (fn [result]
-                                     (update-thar-board result)))))
-    (ev/listen! (dom/by-id (str x "_" y))
-                :contextmenu
-                (fn [event]
-                  (remote-callback :right-click
-                                   [x y]
-                                   (fn [result]
-                                     (update-thar-board result)))
-                  (ev/prevent-default event))))
-  ;; (remote-callback :revealed-board
-  ;;                  []
-  ;;                  (fn [result]
-  ;;                    (dom/log result)
-  ;;                    (doseq [x (range 10)
-  ;;                            y (range 10)]
-  ;;                      (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (result [x y]) ".png")))))
-  )
+    (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png"))))
+
+(defn ^:export init []
+;;  (create-board nil)
+  (ev/listen! (dom/by-id "new-game")
+              :click
+              (fn [event]
+                (remote-callback :new-board
+                                 []
+                                 (fn [board]
+                                   (create-board board))))))
 
 (defn do-stuff []
   (init))

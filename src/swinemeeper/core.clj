@@ -28,6 +28,9 @@
     [:body
      [:h1 "Hello!"]
      [:div {:id "board"}]
+     [:input {:type "button"
+              :value "New Game"
+              :id "new-game"}]
      [:div {:id "board-me-do:"}]
 
      ;; (for [i (range 9)]

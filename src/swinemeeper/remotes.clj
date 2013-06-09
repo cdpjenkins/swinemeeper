@@ -12,8 +12,11 @@
 (def board (atom (s/make-board (s/make-swines 10 10 10 [5 5]) 10 10)))
 
 (defremote new-board []
+  (println "in here!!!")
   (let [swines (s/make-swines 10 10 10 [5 5])]
-    (reset! board (s/make-board swines 10 10))))
+    (reset! board (s/make-board swines 10 10))
+    (println @board)
+    @board))
 
 (defremote revealed-board []
   (let [swines (s/make-swines 10 10 10 [5 5])
@@ -25,7 +28,12 @@
     board))
 
 (defremote click [x y]
-  (swap! board s/uncover [[x y]]))
+  (println "click")
+  (println @board)
+  (swap! board s/uncover [[x y]])
+  (println @board)
+  @board
+  )
 
 (defremote right-click [x y]
   (println "right click" x ", " y)
