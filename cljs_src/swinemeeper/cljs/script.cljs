@@ -30,7 +30,15 @@
                 #((remote-callback :click
                                    [x y]
                                    (fn [result]
-                                     (update-thar-board result))))))
+                                     (update-thar-board result)))))
+    (ev/listen! (dom/by-id (str x "_" y))
+                :contextmenu
+                (fn [event]
+                  (remote-callback :right-click
+                                   [x y]
+                                   (fn [result]
+                                     (update-thar-board result)))
+                  (ev/prevent-default event))))
   (remote-callback :revealed-board
                    []
                    (fn [result]

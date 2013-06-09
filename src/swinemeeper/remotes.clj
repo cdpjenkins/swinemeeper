@@ -26,6 +26,10 @@
 (defremote click [x y]
   (swap! board s/uncover [[x y]]))
 
+(defremote right-click [x y]
+  (println "right click" x ", " y)
+  (swap! board s/mark [x y]))
+
 (def remote-app (-> (var app)
              (wrap-rpc)
              (site)))
