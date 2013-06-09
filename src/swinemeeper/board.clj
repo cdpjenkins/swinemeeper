@@ -65,8 +65,6 @@
 (def neighbours (atom (make-neighbours 15 10)))
 
 (defn is-swine [swines pos]
-  (println swines)
-  (println pos)
   (= (swines pos) :swine))
 
 (defn num-surrounding [swines pos]
