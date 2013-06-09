@@ -21,7 +21,7 @@
                            [:tr
                             (for [x (range 10)]
                               [:td
-                               [:img {:src (str "images/" (mod (+ x y) 9) ".png")
+                               [:img {:src (str "images/:unknown.png")
                                       :id (str x "_" y)}]])])])))
   (doseq [x (range 10)
           y (range 10)]
