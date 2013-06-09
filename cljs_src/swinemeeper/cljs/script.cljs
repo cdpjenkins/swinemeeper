@@ -27,7 +27,8 @@
           y (range 10)]
     (ev/listen! (dom/by-id (str x "_" y))
                 :click
-                #((remote-callback :click
+                (fn [event]
+                  (remote-callback :click
                                    [x y]
                                    (fn [result]
                                      (update-thar-board result)))))
@@ -39,13 +40,14 @@
                                    (fn [result]
                                      (update-thar-board result)))
                   (ev/prevent-default event))))
-  (remote-callback :revealed-board
-                   []
-                   (fn [result]
-                     (dom/log result)
-                     (doseq [x (range 10)
-                             y (range 10)]
-                       (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (result [x y]) ".png"))))))
+  ;; (remote-callback :revealed-board
+  ;;                  []
+  ;;                  (fn [result]
+  ;;                    (dom/log result)
+  ;;                    (doseq [x (range 10)
+  ;;                            y (range 10)]
+  ;;                      (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (result [x y]) ".png")))))
+  )
 
 (defn do-stuff []
   (init))

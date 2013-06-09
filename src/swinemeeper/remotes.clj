@@ -2,6 +2,7 @@
   (:require [swinemeeper.core :refer [app]]
             [swinemeeper.board :as s]
             [compojure.handler :refer [site]]
+            [ring.adapter.jetty :refer [run-jetty]]
             [shoreleave.middleware.rpc :refer [defremote wrap-rpc]]))
 
 (defremote add-me-do [x y]
@@ -33,3 +34,11 @@
 (def remote-app (-> (var app)
              (wrap-rpc)
              (site)))
+
+(defn make-server []
+  (let [server  (run-jetty (var remote-app) {:port 3000 :join? false})]
+    (.stop server)
+    (atom server)))
+
+;; (def s (make-server))
+;; (.start @s)
