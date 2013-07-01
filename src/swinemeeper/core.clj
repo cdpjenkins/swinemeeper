@@ -9,6 +9,7 @@
             [compojure.handler :as handler]
             [compojure.response :as response]
             [ring.middleware.session :as session]
+            [ring.util.response :as ring-response]
             [hiccup
              [page :refer [html5]]
              [page :refer [include-js]]
@@ -21,32 +22,36 @@
     (include-js path)
     (javascript-tag init)))
 
-(defn index []
-  (html
-   [:html
-    [:head
-     [:title "I am a title"]]
-    [:body
-     [:h1 "Hello!"]
-     [:div {:id "board"}]
-     [:input {:type "button"
-              :value "New Game"
-              :id "new-game"}]
-     [:div {:id "board-me-do:"}]
+(defn index [session]
+  (println session)
+  (->
+   (html
+    [:html
+     [:head
+      [:title "I am a title"]]
+     [:body
+      [:h1 "Hello!"]
+      [:div {:id "board"}]
+      [:input {:type "button"
+               :value "New Game"
+               :id "new-game"}]
+      [:div {:id "board-me-do:"}]
 
-     ;; (for [i (range 9)]
-     ;;   [:img {:src (str "images/" i ".png")
-     ;;          :id (str i)}])
-     ;(include-js "/js/script.js")
-     (run-clojurescript
-        "/js/script.js"
-        "swinemeeper.cljs.repl.connect()")
+      ;; (for [i (range 9)]
+      ;;   [:img {:src (str "images/" i ".png")
+      ;;          :id (str i)}])
+                                        ;(include-js "/js/script.js")
+      (run-clojurescript
+       "/js/script.js"
+       "swinemeeper.cljs.repl.connect()")
 
 
-     ]]))
+      ]])
+   (ring-response/response)
+   (assoc :session (assoc session :ston "huss"))))
 
 (defroutes main-routes
-  (GET "/" [] (index))
+  (GET "/" {session :session } (index session))
   (route/resources "/")
   (route/not-found "Page not found"))
 
