@@ -4,11 +4,14 @@
    compojure.core
    [ring.adapter.jetty :as ring]
    [hiccup.core]
-   [hiccup.middleware :only (wrap-base-url)])
+   [hiccup.middleware :only (wrap-base-url)]
+   [ring.middleware.params :only [wrap-params]]
+   [ring.middleware.edn :only [wrap-edn-params]])
   (:require [compojure.route :as route]
             [compojure.handler :as handler]
             [compojure.response :as response]
             [ring.middleware.session :as session]
+
             [ring.util.response :as ring-response]
             [hiccup
              [page :refer [html5]]
@@ -61,18 +64,19 @@
 (def board (atom (s/make-board (s/make-swines 10 10 10 [5 5]) 10 10)))
 
 (defn ajax-click [x y]
+  (println x y)
   (swap! board s/uncover [[x y]])
+  (println @board)
   (pr-str @board))
 
 (defn ajax-right-click [x y]
   (swap! board s/mark [x y]))
 
 (defn ajax-new-board []
-  (println "fuck you")
   (let [swines (s/make-swines 10 10 10 [5 5])]
     (reset! board (s/make-board swines 10 10))
     (println @board)
-    (pr-str@board)))
+    (pr-str @board)))
 
 (defn ajax-skankston [skank session]
   (pr-str ["skankston" skank session]))
@@ -86,24 +90,15 @@
                            session :session}
         (ajax-skankston skank session))
   (POST "/ajax-new-board" [] (ajax-new-board))
+  (POST "/ajax-click" {{x :x, y :y} :params
+                       session :session} (ajax-click x y))
   (route/resources "/")
   (route/not-found "Page not found"))
 
 (def app
-  (-> (handler/site main-routes)
-      (wrap-base-url)))
-
-;; (defroutes myroutes
-;;   (GET "/" [] (index))
-;;   ;; to serve static pages saved in resources/public directory
-;; ;  (route/resources "/")
-;;   ;; if page is not found
-;; ;  (route/not-found "Page not found")
-;;   )
-
-
-;; (def handler
-;;   (handler/site myroutes))
+  (-> main-routes
+      (handler/site)
+      (wrap-edn-params)))
 
 (def server (atom nil))
 

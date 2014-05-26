@@ -6,26 +6,8 @@
             )
   (:require-macros [hiccups.core :as h]))
 
-(.write js/document "Hello, ClojureScript!")
-
-(defn handler [response]
-  (.log js/console (str response)))
-
-(defn error-handler [{:keys [status status-text]}]
-  (.log js/console
-        (str "something bad happened: " status " " status-text)))
-
-(defn hussp []
-  (.log js/console
-        (POST "/ajax-skankston"
-             {:params {:skank "ston"}
-              :handler handler
-              :error-handler error-handler})))
-
-(hussp)
-
 (defn log [& rest]
-  (apply #(.log js/console %) rest))
+  (.log js/console (apply str rest)))
 
 (defn create-board [board-state]
   (let [board (dom/by-id :board)]
@@ -48,7 +30,7 @@
                                     :y y}
                            :handler (fn [response]
                                       (log response)
-                                      (update-thar-board result))})))
+                                      (update-thar-board response))})))
       (ev/listen! (dom/by-id (str x "_" y))
                   :contextmenu
                   (fn [event]
@@ -62,6 +44,11 @@
 (defn update-thar-board [board]
   (doseq [x (range 10)
           y (range 10)]
+    (log dom/set-attr!)
+    (log dom/by-id)
+    (log "board is" board)
+    (log board)
+    (log "ston")
     (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png"))))
 
 (defn ^:export init []

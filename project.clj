@@ -7,7 +7,8 @@
 ;                   [ring/ring-core "0.2.3"]
                    [ring/ring-jetty-adapter "0.2.3"]
                    [domina "1.0.2-SNAPSHOT"]
-                   [cljs-ajax "0.2.3"]]
+                   [cljs-ajax "0.2.3"]
+                   [fogus/ring-edn "0.2.0"]]
     :plugins [[lein-cljsbuild "0.3.2"]
               [lein-ring "0.7.0"]]
 
