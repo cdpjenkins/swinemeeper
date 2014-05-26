@@ -7,6 +7,7 @@
    [hiccup.middleware :only (wrap-base-url)]
    [ring.middleware.params :only [wrap-params]]
    [ring.middleware.edn :only [wrap-edn-params]])
+  
   (:require [compojure.route :as route]
             [compojure.handler :as handler]
             [compojure.response :as response]
@@ -46,10 +47,7 @@
                                         ;(include-js "/js/script.js")
       (run-clojurescript
        "/js/script.js"
-       "swinemeeper.cljs.repl.connect()")
-
-
-      ]])
+       "swinemeeper.cljs.repl.connect()")]])
    (ring-response/response)
    (assoc :session (assoc session :ston "huss"))))
 
@@ -58,27 +56,36 @@
 
 (def board (atom (s/make-board (s/make-swines 10 10 10 [5 5]) 10 10)))
 
-(defn ajax-click [x y]
+(def counter (atom 0))
+
+(defn ajax-click [session x y]
   (println x y)
+  (swap! counter inc)
   (swap! board s/uncover [[x y]])
-  (println @board)
-  (pr-str @board))
+  (print @board)
+  (-> (pr-str @board)
+      (ring-response/response)
+      (assoc :session (assoc session :board @board))))
+ ;; bit weird, n'est ce pas?
 
 (defn ajax-right-click [x y]
   (swap! board s/mark [x y]))
 
-(defn ajax-new-board []
+(defn ajax-new-board [session]
   (let [swines (s/make-swines 10 10 10 [5 5])]
     (reset! board (s/make-board swines 10 10))
-    (println @board)
-    (pr-str @board)))
+    (-> (pr-str @board)
+        (ring-response/response)
+        (assoc :session {:board @board}))))
 
 (defroutes main-routes
   (GET "/" {session :session } (index session))
   (GET "/dump-session" {session :session} (dump-session session))
-  (POST "/ajax-new-board" [] (ajax-new-board))
+  (POST "/ajax-new-board" {session :session} (ajax-new-board session))
   (POST "/ajax-click" {{x :x, y :y} :params
-                       session :session} (ajax-click x y))
+                       session :session} (do
+                                           (println session)
+                                           (ajax-click session x y)))
   (route/resources "/")
   (route/not-found "Page not found"))
 
