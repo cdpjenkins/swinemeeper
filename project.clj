@@ -54,7 +54,7 @@
                 }
 
 
-    :ring {:handler swinemeeper.remotes/remote-app}
+    :ring {:handler swinemeeper.core/app}
     ;;    :main swinemeeper.core
 
 )
