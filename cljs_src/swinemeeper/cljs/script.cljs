@@ -2,7 +2,6 @@
   (:require [domina :as dom]
             [domina.events :as ev]
             [hiccups.runtime :as hiccupsrt]
-            [shoreleave.remotes.http-rpc :refer [remote-callback]]
             [ajax.core :refer [GET POST]]
             )
   (:require-macros [hiccups.core :as h]))
@@ -18,12 +17,19 @@
 
 (defn hussp []
   (.log js/console
-        (GET "/ajax-hello"
+        (POST "/ajax-skankston"
              {:params {:skank "ston"}
               :handler handler
               :error-handler error-handler})))
 
 (hussp)
+
+(defn click [x y]
+  ;; TODO
+  ;; (fn [result]
+  ;;   (update-thar-board result)
+  )
+
 
 (defn create-board [board-state]
   (let [board (dom/by-id :board)]
@@ -41,17 +47,20 @@
       (ev/listen! (dom/by-id (str x "_" y))
                   :click
                   (fn [event]
-                    (remote-callback :click
-                                     [x y]
-                                     (fn [result]
-                                       (update-thar-board result)))))
+                    ;; TODO
+                    ;; (remote-callback :click
+                    ;;                  [x y]
+                    ;;                  (fn [result]
+                    ;;                    (update-thar-board result)))
+                    ))
       (ev/listen! (dom/by-id (str x "_" y))
                   :contextmenu
                   (fn [event]
-                    (remote-callback :right-click
-                                     [x y]
-                                     (fn [result]
-                                       (update-thar-board result)))
+                    ;; TODO
+                    ;; (remote-callback :right-click
+                    ;;                  [x y]
+                    ;;                  (fn [result]
+                    ;;                    (update-thar-board result)))
                     (ev/prevent-default event)))))
 
 (defn update-thar-board [board]
@@ -64,10 +73,12 @@
   (ev/listen! (dom/by-id "new-game")
               :click
               (fn [event]
-                (remote-callback :new-board
-                                 []
-                                 (fn [board]
-                                   (create-board board))))))
+                ;; TODO
+                ;; (remote-callback :new-board
+                ;;                  []
+                ;;                  (fn [board]
+                ;;                    (create-board board)))
+                )))
 
 (defn do-stuff []
   (init))

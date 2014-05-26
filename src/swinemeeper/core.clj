@@ -1,6 +1,6 @@
 (ns swinemeeper.core
   (:use
-;   swinemeeper.board
+   [swinemeeper.board :as s]
    compojure.core
    [ring.adapter.jetty :as ring]
    [hiccup.core]
@@ -58,11 +58,31 @@
    [
     skank session]))
 
+(def board (atom (s/make-board (s/make-swines 10 10 10 [5 5]) 10 10)))
+
+(defn ajax-click [x y]
+  (swap! board s/uncover [[x y]])
+  @board)
+
+(defn ajax-right-click [x y]
+  (swap! board s/mark [x y]))
+
+(defn ajax-new-board []
+  (let [swines (s/make-swines 10 10 10 [5 5])]
+    (reset! board (s/make-board swines 10 10))
+    @board))
+
+(defn ajax-skankston [skank session]
+  (pr-str ["skankston" skank session]))
+
 (defroutes main-routes
   (GET "/" {session :session } (index session))
   (GET "/dump-session" {session :session} (dump-session session))
   (GET "/ajax-hello" {{skank :skank} :params
                  session :session} (ajax-hello skank session))
+  (POST "/ajax-skankston" {{skank :skank} :params
+                           session :session}
+        (ajax-skankston skank session))
   (route/resources "/")
   (route/not-found "Page not found"))
 

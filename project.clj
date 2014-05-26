@@ -7,8 +7,6 @@
 ;                   [ring/ring-core "0.2.3"]
                    [ring/ring-jetty-adapter "0.2.3"]
                    [domina "1.0.2-SNAPSHOT"]
-                   [shoreleave/shoreleave-remote-ring "0.3.0"]
-                   [shoreleave/shoreleave-remote "0.3.0"]
                    [cljs-ajax "0.2.3"]]
     :plugins [[lein-cljsbuild "0.3.2"]
               [lein-ring "0.7.0"]]
