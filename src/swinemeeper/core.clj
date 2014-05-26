@@ -56,11 +56,6 @@
 (defn dump-session [session]
   (str session))
 
-(defn ajax-hello [skank session]
-  (pr-str
-   [
-    skank session]))
-
 (def board (atom (s/make-board (s/make-swines 10 10 10 [5 5]) 10 10)))
 
 (defn ajax-click [x y]
@@ -78,17 +73,9 @@
     (println @board)
     (pr-str @board)))
 
-(defn ajax-skankston [skank session]
-  (pr-str ["skankston" skank session]))
-
 (defroutes main-routes
   (GET "/" {session :session } (index session))
   (GET "/dump-session" {session :session} (dump-session session))
-  (GET "/ajax-hello" {{skank :skank} :params
-                 session :session} (ajax-hello skank session))
-  (POST "/ajax-skankston" {{skank :skank} :params
-                           session :session}
-        (ajax-skankston skank session))
   (POST "/ajax-new-board" [] (ajax-new-board))
   (POST "/ajax-click" {{x :x, y :y} :params
                        session :session} (ajax-click x y))
@@ -108,12 +95,11 @@
   (reset! server (run-jetty (var app) {:port 8080 :join? false})))
 
 (defn -main []
- ; (run-jetty routes {:port 8080 :join? false})
   (make-server))
 
 (comment
   (def s (make-server))
-  (.start @s)
-  (.stop @s)
+  (.start s)
+  (.stop s)
+)
 
-  )
