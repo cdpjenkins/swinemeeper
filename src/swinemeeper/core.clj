@@ -32,7 +32,7 @@
    (html
     [:html
      [:head
-      [:title "I am a title"]]
+      [:title "Swinemeeper"]]
      [:body
       [:h1 "Hello!"]
       [:div {:id "board"}]
