@@ -96,13 +96,17 @@
 
 (def server (atom nil))
 
-(defn make-server []
-  (when (not (nil? @server))
-    (.stop @server))
-  (reset! server (run-jetty (var app) {:port 8080 :join? false})))
+(defn make-server
+  ([]
+     (make-server 8000))
+  ([port]
+     (let [port (Integer/parseInt port)]
+       ( when (not (nil? @server))
+         (.stop @server))
+       (reset! server (run-jetty (var app) {:port port :join? false})))))
 
-(defn -main []
-  (make-server))
+(defn -main [port ]
+  (make-server port))
 
 (comment
   (def s (make-server))

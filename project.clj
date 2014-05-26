@@ -5,7 +5,7 @@
                  [hiccup "1.0.0"]
                  [hiccups "0.2.0"]
                  [ring/ring-jetty-adapter "0.2.3"]
-                 [domina "1.0.2-SNAPSHOT"]
+                 [domina "1.0.2"]
                  [cljs-ajax "0.2.3"]
                  [fogus/ring-edn "0.2.0"]]
   :plugins [[lein-cljsbuild "0.3.2"]
@@ -49,4 +49,5 @@
 
               }
   :ring {:handler swinemeeper.core/app}
-  :main swinemeeper.core)
+  :main swinemeeper.core
+  :uberjar-name "swinemeeper-standalone.jar")
