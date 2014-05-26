@@ -180,7 +180,7 @@
 
 (defn fully-reveal-board-on-lose [board]
   ;; TODO wrongly placed flags
-  ;; TODO exploding swine on the place you just clicked
+  ;; TODO exploding swine on the place you just clickged
   (let [swines (:swines board)]
     (into board
           (for [[x y] (iterate-board board)]

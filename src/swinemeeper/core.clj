@@ -27,14 +27,13 @@
     (javascript-tag init)))
 
 (defn index [session]
-  (println session)
   (->
    (html
     [:html
      [:head
       [:title "Swinemeeper"]]
      [:body
-      [:h1 "Hello!"]
+      [:h1 "Swinemeeper!"]
       [:div {:id "board"}]
       [:input {:type "button"
                :value "New Game"
@@ -59,24 +58,24 @@
 (def counter (atom 0))
 
 (defn ajax-click [session x y]
-  (println x y)
-  (swap! counter inc)
-  (swap! board s/uncover [[x y]])
-  (print @board)
-  (-> (pr-str @board)
-      (ring-response/response)
-      (assoc :session (assoc session :board @board))))
+  (let [board (:board session)
+        board (uncover board [[x y]])
+        ]
+    (-> (pr-str board)
+        (ring-response/response)
+        (assoc :session (assoc session :board board)))))
  ;; bit weird, n'est ce pas?
 
+;; TODO this still does not use the session
 (defn ajax-right-click [x y]
   (swap! board s/mark [x y]))
 
 (defn ajax-new-board [session]
-  (let [swines (s/make-swines 10 10 10 [5 5])]
-    (reset! board (s/make-board swines 10 10))
-    (-> (pr-str @board)
+  (let [swines (s/make-swines 10 10 10 [5 5])
+        board (s/make-board swines 10 10)]
+    (-> (pr-str board)
         (ring-response/response)
-        (assoc :session {:board @board}))))
+        (assoc :session {:board board}))))
 
 (defroutes main-routes
   (GET "/" {session :session } (index session))
@@ -84,7 +83,6 @@
   (POST "/ajax-new-board" {session :session} (ajax-new-board session))
   (POST "/ajax-click" {{x :x, y :y} :params
                        session :session} (do
-                                           (println session)
                                            (ajax-click session x y)))
   (route/resources "/")
   (route/not-found "Page not found"))
@@ -100,13 +98,13 @@
   ([]
      (make-server 8000))
   ([port]
-     (let [port (Integer/parseInt port)]
+     (let [port port]
        ( when (not (nil? @server))
          (.stop @server))
        (reset! server (run-jetty (var app) {:port port :join? false})))))
 
 (defn -main [port ]
-  (make-server port))
+  (make-server (Integer/parseInt port)))
 
 (comment
   (def s (make-server))
