@@ -48,6 +48,7 @@
                                    :pretty-print true}}}
 
               }
+  :min-lein-version "2.0.0"
   :ring {:handler swinemeeper.core/app}
   :main swinemeeper.core
   :uberjar-name "swinemeeper-standalone.jar")
