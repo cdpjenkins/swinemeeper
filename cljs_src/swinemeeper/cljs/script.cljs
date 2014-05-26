@@ -24,12 +24,8 @@
 
 (hussp)
 
-(defn click [x y]
-  ;; TODO
-  ;; (fn [result]
-  ;;   (update-thar-board result)
-  )
-
+(defn log [& rest]
+  (apply #(.log js/console %) rest))
 
 (defn create-board [board-state]
   (let [board (dom/by-id :board)]
@@ -47,12 +43,12 @@
       (ev/listen! (dom/by-id (str x "_" y))
                   :click
                   (fn [event]
-                    ;; TODO
-                    ;; (remote-callback :click
-                    ;;                  [x y]
-                    ;;                  (fn [result]
-                    ;;                    (update-thar-board result)))
-                    ))
+                    (POST "/ajax-click"
+                          {:params {:x x
+                                    :y y}
+                           :handler (fn [response]
+                                      (log response)
+                                      (update-thar-board result))})))
       (ev/listen! (dom/by-id (str x "_" y))
                   :contextmenu
                   (fn [event]
@@ -73,12 +69,11 @@
   (ev/listen! (dom/by-id "new-game")
               :click
               (fn [event]
-                ;; TODO
-                ;; (remote-callback :new-board
-                ;;                  []
-                ;;                  (fn [board]
-                ;;                    (create-board board)))
-                )))
+                (POST "/ajax-new-board "
+                      {:params {}
+                       :handler (fn [response]
+                                  (log response)
+                                  (create-board board))}))))
 
 (defn do-stuff []
   (init))

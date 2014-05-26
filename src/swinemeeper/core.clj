@@ -62,15 +62,17 @@
 
 (defn ajax-click [x y]
   (swap! board s/uncover [[x y]])
-  @board)
+  (pr-str @board))
 
 (defn ajax-right-click [x y]
   (swap! board s/mark [x y]))
 
 (defn ajax-new-board []
+  (println "fuck you")
   (let [swines (s/make-swines 10 10 10 [5 5])]
     (reset! board (s/make-board swines 10 10))
-    @board))
+    (println @board)
+    (pr-str@board)))
 
 (defn ajax-skankston [skank session]
   (pr-str ["skankston" skank session]))
@@ -83,6 +85,7 @@
   (POST "/ajax-skankston" {{skank :skank} :params
                            session :session}
         (ajax-skankston skank session))
+  (POST "/ajax-new-board" [] (ajax-new-board))
   (route/resources "/")
   (route/not-found "Page not found"))
 
