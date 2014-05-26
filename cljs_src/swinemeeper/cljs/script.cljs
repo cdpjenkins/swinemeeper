@@ -3,10 +3,27 @@
             [domina.events :as ev]
             [hiccups.runtime :as hiccupsrt]
             [shoreleave.remotes.http-rpc :refer [remote-callback]]
+            [ajax.core :refer [GET POST]]
             )
   (:require-macros [hiccups.core :as h]))
 
 (.write js/document "Hello, ClojureScript!")
+
+(defn handler [response]
+  (.log js/console (str response)))
+
+(defn error-handler [{:keys [status status-text]}]
+  (.log js/console
+        (str "something bad happened: " status " " status-text)))
+
+(defn hussp []
+  (.log js/console
+        (GET "/ajax-hello"
+             {:params {:skank "ston"}
+              :handler handler
+              :error-handler error-handler})))
+
+(hussp)
 
 (defn create-board [board-state]
   (let [board (dom/by-id :board)]

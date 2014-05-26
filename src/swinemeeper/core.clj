@@ -50,8 +50,19 @@
    (ring-response/response)
    (assoc :session (assoc session :ston "huss"))))
 
+(defn dump-session [session]
+  (str session))
+
+(defn ajax-hello [skank session]
+  (pr-str
+   [
+    skank session]))
+
 (defroutes main-routes
   (GET "/" {session :session } (index session))
+  (GET "/dump-session" {session :session} (dump-session session))
+  (GET "/ajax-hello" {{skank :skank} :params
+                 session :session} (ajax-hello skank session))
   (route/resources "/")
   (route/not-found "Page not found"))
 
@@ -71,12 +82,20 @@
 ;; (def handler
 ;;   (handler/site myroutes))
 
+(def server (atom nil))
 
 (defn make-server []
-  (let [s (atom (run-jetty (var app) {:port 8080 :join? false}))]
-;   (.stop @s)
-   s))
+  (when (not (nil? @server))
+    (.stop @server))
+  (reset! server (run-jetty (var app) {:port 8080 :join? false})))
 
 (defn -main []
  ; (run-jetty routes {:port 8080 :join? false})
   (make-server))
+
+(comment
+  (def s (make-server))
+  (.start @s)
+  (.stop @s)
+
+  )
