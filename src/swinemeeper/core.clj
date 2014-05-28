@@ -77,6 +77,12 @@
         (ring-response/response)
         (assoc :session {:board board}))))
 
+(defn wrap-me-do [handler]
+  (println "wrapping...")
+  (fn [req]
+    (println "wrapped!!!!")
+    (ring-response/header (handler req) "Cache-Control" "max-age=25" )))
+
 (defroutes main-routes
   (GET "/" {session :session } (index session))
   (GET "/dump-session" {session :session} (dump-session session))
@@ -84,7 +90,8 @@
   (POST "/ajax-click" {{x :x, y :y} :params
                        session :session} (do
                                            (ajax-click session x y)))
-  (route/resources "/")
+  (-> (route/resources "/")
+      (wrap-me-do))
   (route/not-found "Page not found"))
 
 (def app
