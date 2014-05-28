@@ -72,7 +72,12 @@
 
 (defn try-square [swines pos]
   (if (is-swine swines pos)
-    :swine
+    :exploding-swine
+    (num-surrounding swines pos)))
+
+(defn try-square-on-win [swines pos]
+  (if (is-swine swines pos)
+    :marked
     (num-surrounding swines pos)))
 
 ;; A board is a map from coord pair to either
@@ -139,17 +144,66 @@
                     (= % :exploding-swine))))
 
 ;; Board manipulation functions
-(defn uncover [board coords]
-  (let [ [x y] (first coords)
 
-         ]
-    ;; TODO
-    )
-  )
+
+(defn fully-reveal-board-on-lose [board]
+  ;; TODO wrongly placed flags
+  ;; TODO exploding swine on the place you just clickged
+  (let [swines (:swines board)]
+    (into board
+          (for [[x y] (iterate-board board)]
+            [[x y] (try-square swines [x y])]))
+
+    ;; (assoc view :grid (vec (for [y (iterate-height board)]
+    ;;     	        (vec (for [x (iterate-width board)]
+    ;;     	          (condp = (.square-at view [x y])
+    ;;     		      :marked (if (not (is-swine? board [x y]))
+    ;;     				:incorrectly-marked
+    ;;     				:marked)
+    ;;     		      :swine :exploding_swine
+    ;;     		      :unknown (if (is-swine? board [x y])
+    ;;     				 :swine
+    ;;     				 :unknown)
+    ;;     		      (try-square board [x y])))))))
+    ))
+
+(defn fully-reveal-board-on-win [board]
+(let [swines (:swines board)]
+    (into board
+          (for [[x y] (iterate-board board)]
+            [[x y] (try-square-on-win swines [x y])]))))
+
+(defn num-swines-unmarked [board]
+  (- (:num-swines board) (count-marked board)))
+
+(defn is-game-lost [board]
+  (> (count-swines board) 0))
+
+(defn is-game-won [board]
+  (= (count-revealed board)
+     (- (* (:width board) (:height board)) (:num-swines board))))
+
+(defn new-game-state [board]
+  (cond
+    (is-game-won board)  :game-won
+    (is-game-lost board) :game-lost
+    :else :game-playing))
+
+(defn check-for-endgame [board]
+  "Checks for the end of the game and updates game state."
+  (let [new-state (new-game-state board)]
+    (println new-state)
+    (condp = new-state
+      :game-won (assoc (fully-reveal-board-on-win board)
+                  :state new-state)
+      :game-lost (assoc (fully-reveal-board-on-lose board)
+                   :state new-state)
+      (assoc board :state new-state))))
+
 
 (defn uncover [board poses]
   (if (empty? poses)
-    board
+    (check-for-endgame board)
     (let [pos (first poses)
           square (try-square (:swines board) pos)
           new-board (assoc board pos square)
@@ -177,56 +231,3 @@
                          (@neighbours [x y])))
         board)
       board)))
-
-(defn fully-reveal-board-on-lose [board]
-  ;; TODO wrongly placed flags
-  ;; TODO exploding swine on the place you just clickged
-  (let [swines (:swines board)]
-    (into board
-          (for [[x y] (iterate-board board)]
-            [[x y] (try-square swines [x y])]))
-
-    ;; (assoc view :grid (vec (for [y (iterate-height board)]
-    ;;     	        (vec (for [x (iterate-width board)]
-    ;;     	          (condp = (.square-at view [x y])
-    ;;     		      :marked (if (not (is-swine? board [x y]))
-    ;;     				:incorrectly-marked
-    ;;     				:marked)
-    ;;     		      :swine :exploding_swine
-    ;;     		      :unknown (if (is-swine? board [x y])
-    ;;     				 :swine
-    ;;     				 :unknown)
-    ;;     		      (try-square board [x y])))))))
-    ))
-
-(defn fully-reveal-board-on-win [board]
-(let [swines (:swines board)]
-    (into board
-          (for [[x y] (iterate-board board)]
-            [[x y] (try-square swines [x y])]))))
-
-(defn num-swines-unmarked [board]
-  (- (:num-swines board) (count-marked board)))
-
-(defn is-game-lost [board]
-  (> (count-swines board) 0))
-
-(defn is-game-won [board]
-  (= (count-revealed board)
-     (- (* (:width board) (:height board)) (:num-swines board))))
-
-(defn new-game-state [board]
-  (cond
-    (is-game-won board)  :game-won
-    (is-game-lost board) :game-lost
-    :else :game-playing))
-
-(defn check-for-endgame [board]
-  "Checks for the end of the game and updates game state."
-  (let [new-state (new-game-state board)]
-    (condp = new-state
-      :game-won (assoc (fully-reveal-board-on-win board)
-                  :state new-state)
-      :game-lost (assoc (fully-reveal-board-on-lose board)
-                   :state new-state)
-      (assoc board :state new-state))))

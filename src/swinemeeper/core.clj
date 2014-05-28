@@ -78,9 +78,7 @@
         (assoc :session {:board board}))))
 
 (defn wrap-me-do [handler]
-  (println "wrapping...")
   (fn [req]
-    (println "wrapped!!!!")
     (ring-response/header (handler req) "Cache-Control" "max-age=25" )))
 
 (defroutes main-routes
