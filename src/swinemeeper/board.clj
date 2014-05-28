@@ -4,7 +4,6 @@
 ;; :width
 ;; :height
 
-
 (defn- square-str [sq]
   (str (condp = sq
 	 :swine   "X"
@@ -75,10 +74,15 @@
     :exploding-swine
     (num-surrounding swines pos)))
 
-(defn try-square-on-win [swines pos]
+(defn reveal-square-on-win [swines pos]
   (if (is-swine swines pos)
     :marked
     (num-surrounding swines pos)))
+
+(defn reveal-square-on-lose [swines pos board]
+  (if (is-swine swines pos)
+    :exploding-swine
+    (board pos)))
 
 ;; A board is a map from coord pair to either
 ;; :swine
@@ -144,34 +148,19 @@
                     (= % :exploding-swine))))
 
 ;; Board manipulation functions
-
-
 (defn fully-reveal-board-on-lose [board]
   ;; TODO wrongly placed flags
   ;; TODO exploding swine on the place you just clickged
   (let [swines (:swines board)]
     (into board
           (for [[x y] (iterate-board board)]
-            [[x y] (try-square swines [x y])]))
-
-    ;; (assoc view :grid (vec (for [y (iterate-height board)]
-    ;;     	        (vec (for [x (iterate-width board)]
-    ;;     	          (condp = (.square-at view [x y])
-    ;;     		      :marked (if (not (is-swine? board [x y]))
-    ;;     				:incorrectly-marked
-    ;;     				:marked)
-    ;;     		      :swine :exploding_swine
-    ;;     		      :unknown (if (is-swine? board [x y])
-    ;;     				 :swine
-    ;;     				 :unknown)
-    ;;     		      (try-square board [x y])))))))
-    ))
+            [[x y] (reveal-square-on-lose swines [x y] board)]))))
 
 (defn fully-reveal-board-on-win [board]
 (let [swines (:swines board)]
     (into board
           (for [[x y] (iterate-board board)]
-            [[x y] (try-square-on-win swines [x y])]))))
+            [[x y] (reveal-square-on-win swines [x y])]))))
 
 (defn num-swines-unmarked [board]
   (- (:num-swines board) (count-marked board)))
@@ -207,7 +196,6 @@
     (let [pos (first poses)
           square (try-square (:swines board) pos)
           new-board (assoc board pos square)
-          ; TODO recursively check squares if this is a zero
           new-poses (if (and
                          (= (board pos) :unknown)
                          (= square 0))
