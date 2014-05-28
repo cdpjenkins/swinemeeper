@@ -29,8 +29,9 @@
                           {:params {:x x
                                     :y y}
                            :handler (fn [response]
-                                      (log response)
-                                      (update-thar-board response))})))
+                                      (log "before: " (.getTime (js/Date.)))
+                                      (update-thar-board response)
+                                      (log "after:  " (.getTime (js/Date.))))})))
       (ev/listen! (dom/by-id (str x "_" y))
                   :contextmenu
                   (fn [event]
@@ -44,11 +45,6 @@
 (defn update-thar-board [board]
   (doseq [x (range 10)
           y (range 10)]
-    (log dom/set-attr!)
-    (log dom/by-id)
-    (log "board is" board)
-    (log board)
-    (log "ston")
     (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png"))))
 
 (defn ^:export init []
@@ -59,7 +55,6 @@
                 (POST "/ajax-new-board "
                       {:params {}
                        :handler (fn [response]
-                                  (log response)
                                   (create-board board))}))))
 
 (defn do-stuff []
