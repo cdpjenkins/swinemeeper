@@ -9,17 +9,26 @@
 (defn log [& rest]
   (.log js/console (apply str rest)))
 
+(def states-to-strings
+  {
+   :game-playing "Game Playing"
+   :game-won     "Game Won"
+   :game-lost    "Game Lost"})
+
 (defn create-board [board-state]
   (let [board (dom/by-id :board)]
     (dom/destroy-children! board)
-    (dom/append! board (h/html
-                        [:table
-                         (for [y (range 10)]
-                           [:tr
-                            (for [x (range 10)]
-                              [:td
-                               [:img {:src (str "images/:unknown.png")
-                                      :id (str x "_" y)}]])])])))
+    (dom/append! board
+                 (h/html
+                  [:table
+                   (for [y (range 10)]
+                     [:tr
+                      (for [x (range 10)]
+                        [:td
+                         [:img {:src (str "images/:unknown.png")
+                                :id (str x "_" y)}]])])]
+                  [:div {:id "swines-remaining"}]
+                  [:div {:id "game-state"}])))
     (doseq [x (range 10)
             y (range 10)]
       (ev/listen! (dom/by-id (str x "_" y))
@@ -50,7 +59,11 @@
 (defn update-thar-board [board]
   (doseq [x (range 10)
           y (range 10)]
-    (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png"))))
+    (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png")))
+  (dom/set-text! (dom/by-id "swines-remaining")
+                 (:num-swines board))
+  (dom/set-text! (dom/by-id "game-state")
+                 (states-to-strings (:state board))))
 
 (defn ^:export init []
 ;;  (create-board nil)
