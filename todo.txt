@@ -1,0 +1,5 @@
+- Start a game straight away
+
+- Print remaining-swines
+- Print message if you win/lost
+- Disallow further action if you win/lose

@@ -67,8 +67,12 @@
  ;; bit weird, n'est ce pas?
 
 ;; TODO this still does not use the session
-(defn ajax-right-click [x y]
-  (swap! board s/mark [x y]))
+(defn ajax-right-click [session x y]
+  (let [board (:board session)
+        board (mark board [x y])]
+    (-> (pr-str board)
+        (ring-response/response)
+        (assoc :session (assoc session :board board)))))
 
 (defn ajax-new-board [session]
   (let [swines (s/make-swines 10 10 10 [5 5])
@@ -88,6 +92,9 @@
   (POST "/ajax-click" {{x :x, y :y} :params
                        session :session} (do
                                            (ajax-click session x y)))
+  (POST "/ajax-right-click" {{x :x, y :y} :params
+                             session :session}
+        (do (ajax-right-click session x y)))
   (-> (route/resources "/")
       (wrap-me-do))
   (route/not-found "Page not found"))

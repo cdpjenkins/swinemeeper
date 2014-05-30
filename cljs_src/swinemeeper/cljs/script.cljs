@@ -35,6 +35,11 @@
       (ev/listen! (dom/by-id (str x "_" y))
                   :contextmenu
                   (fn [event]
+                    (POST "/ajax-right-click"
+                          {:params {:x x
+                                    :y y}
+                           :handler (fn [response]
+                                      (update-thar-board response))})
                     ;; TODO
                     ;; (remote-callback :right-click
                     ;;                  [x y]
