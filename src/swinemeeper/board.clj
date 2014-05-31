@@ -191,33 +191,36 @@
 
 
 (defn uncover [board poses]
-  (if (empty? poses)
-    (check-for-endgame board)
-    (let [pos (first poses)
-          square (try-square (:swines board) pos)
-          new-board (assoc board pos square)
-          new-poses (if (and
-                         (= (board pos) :unknown)
-                         (= square 0))
-                      (concat (rest poses) (@neighbours pos))
-                      (rest poses))]
-      (recur new-board new-poses))))
+  (when (= (:state board) :game-playing)
+    (if (empty? poses)
+      (check-for-endgame board)
+      (let [pos (first poses)
+            square (try-square (:swines board) pos)
+            new-board (assoc board pos square)
+            new-poses (if (and
+                           (= (board pos) :unknown)
+                           (= square 0))
+                        (concat (rest poses) (@neighbours pos))
+                        (rest poses))]
+        (recur new-board new-poses)))))
 
 (defn mark [board [x y]]
-  (condp = (board [x y])
-    :unknown (let [board (assoc board [x y] :marked)]
-               (assoc board :remaining-swines (num-swines-unmarked board)))
-    :marked (let [board (assoc board [x y] :unknown)]
-               (assoc board :remaining-swines (num-swines-unmarked board)))
-    board))
+  (when (= (:state board) :game-playing)
+    (condp = (board [x y])
+      :unknown (let [board (assoc board [x y] :marked)]
+                 (assoc board :remaining-swines (num-swines-unmarked board)))
+      :marked (let [board (assoc board [x y] :unknown)]
+                (assoc board :remaining-swines (num-swines-unmarked board)))
+      board)))
 
 (defn double-dude [board [x y]]
   ; TODO rename to something sensible
-  (let [square (board [x y])]
-    (if (number? square)
-      (if (= square (num-marked-neighbours board [x y]))
-        (uncover board
-                 (filter #(= (board %) :unknown)
-                         (@neighbours [x y])))
-        board)
-      board)))
+  (when (= (:state board) :game-playing)
+    (let [square (board [x y])]
+      (if (number? square)
+        (if (= square (num-marked-neighbours board [x y]))
+          (uncover board
+                   (filter #(= (board %) :unknown)
+                           (@neighbours [x y])))
+          board)
+        board))))
