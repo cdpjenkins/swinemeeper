@@ -15,20 +15,21 @@
    :game-won     "Game Won"
    :game-lost    "Game Lost"})
 
-(defn create-board [board-state]
+(defn create-board []
+  (log "yeah whatever...")
   (let [board (dom/by-id :board)]
     (dom/destroy-children! board)
     (dom/append! board
                  (h/html
+                  [:div {:id "swines-remaining"}]
+                  [:div {:id "game-state"}]
                   [:table
                    (for [y (range 10)]
                      [:tr
                       (for [x (range 10)]
                         [:td
                          [:img {:src (str "images/:unknown.png")
-                                :id (str x "_" y)}]])])]
-                  [:div {:id "swines-remaining"}]
-                  [:div {:id "game-state"}])))
+                                :id (str x "_" y)}]])])])))
     (doseq [x (range 10)
             y (range 10)]
       (ev/listen! (dom/by-id (str x "_" y))
@@ -66,14 +67,14 @@
                  (states-to-strings (:state board))))
 
 (defn ^:export init []
-;;  (create-board nil)
+  (create-board)
   (ev/listen! (dom/by-id "new-game")
               :click
               (fn [event]
                 (POST "/ajax-new-board "
                       {:params {}
                        :handler (fn [response]
-                                  (create-board board))}))))
+                                  (create-board))}))))
 
 (defn do-stuff []
   (init))

@@ -83,7 +83,7 @@
 
 (defn wrap-me-do [handler]
   (fn [req]
-    (ring-response/header (handler req) "Cache-Control" "max-age=25" )))
+    (ring-response/header (handler req) "Cache-Control" "max-age=3" )))
 
 (defroutes main-routes
   (GET "/" {session :session } (index session))
