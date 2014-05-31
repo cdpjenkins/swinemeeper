@@ -100,7 +100,6 @@
 ;; :remaining-swines
 
 (defn make-board [swines width height]
-  (println "swines: " swines)
   (into
    (apply hash-map
           (interleave
@@ -206,12 +205,10 @@
 
 (defn mark [board [x y]]
   (condp = (board [x y])
-    :unknown (-> board
-                  (assoc [x y] :marked)
-                  (assoc :remaining-swines (num-swines-unmarked board)))
-    :marked  (-> board
-                  (assoc [x y] :unknown)
-                  (assoc :remaining-swines (num-swines-unmarked board)))
+    :unknown (let [board (assoc board [x y] :marked)]
+               (assoc board :remaining-swines (num-swines-unmarked board)))
+    :marked (let [board (assoc board [x y] :unknown)]
+               (assoc board :remaining-swines (num-swines-unmarked board)))
     board))
 
 (defn double-dude [board [x y]]
