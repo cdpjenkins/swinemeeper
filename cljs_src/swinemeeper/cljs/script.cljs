@@ -67,7 +67,10 @@
                  (states-to-strings (:state board))))
 
 (defn ^:export init []
-  (create-board)
+  (POST "/ajax-new-board "
+                      {:params {}
+                       :handler (fn [response]
+                                  (create-board))})
   (ev/listen! (dom/by-id "new-game")
               :click
               (fn [event]
