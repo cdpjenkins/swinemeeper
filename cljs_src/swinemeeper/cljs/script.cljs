@@ -62,7 +62,7 @@
           y (range 10)]
     (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png")))
   (dom/set-text! (dom/by-id "swines-remaining")
-                 (:num-swines board))
+                 (:remaining-swines board))
   (dom/set-text! (dom/by-id "game-state")
                  (states-to-strings (:state board))))
 
