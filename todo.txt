@@ -1,1 +1,5 @@
+- fixup board.clj
+- write unit tests!
+- incorrectly placed flag on lose
+- make repl only happen on :dev ...
 

@@ -16,7 +16,6 @@
    :game-lost    "Game Lost"})
 
 (defn create-board []
-  (log "yeah whatever...")
   (let [board (dom/by-id :board)]
     (dom/destroy-children! board)
     (dom/append! board
@@ -39,9 +38,7 @@
                           {:params {:x x
                                     :y y}
                            :handler (fn [response]
-                                      (log "before: " (.getTime (js/Date.)))
-                                      (update-thar-board response)
-                                      (log "after:  " (.getTime (js/Date.))))})))
+                                      (update-thar-board response))})))
       (ev/listen! (dom/by-id (str x "_" y))
                   :contextmenu
                   (fn [event]
