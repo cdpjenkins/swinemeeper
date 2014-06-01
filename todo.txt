@@ -3,3 +3,5 @@
 - incorrectly placed flag on lose
 - make repl only happen on :dev ...
 
+- get rid of num-swines from board
+- get rid of width/height from swines

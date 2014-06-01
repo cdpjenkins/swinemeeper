@@ -107,8 +107,7 @@
                  x (range width)]
              [x y])
            (repeat :unknown)))
-   {
-    :swines swines
+   {:swines swines
     :width width
     :height height
     :num-swines (- (count swines) 2) ; HACK
@@ -121,29 +120,31 @@
       (print (square-str ( board [x y]))))
     (println)))
 
-(defn num-neighbours= [board [x y] value]
+(defn- num-neighbours= [board [x y] value]
+  "Returns the number of squares adjacent to [x y] that have the
+  specified value"
   (count (filter #(= % value) (map board (@neighbours [x y])))))
 
-(defn num-marked-neighbours [board [x y]]
+(defn- num-marked-neighbours [board [x y]]
   (num-neighbours= board [x y] :marked))
 
-(defn num-unknown-neighbours [board [x y]]
+(defn- num-unknown-neighbours [board [x y]]
   (num-neighbours= board [x y] :unknown))
 
-(defn countp [board p]
+(defn- countp [board p]
   "Count the number of board squares that match a predicate"
   (count
    (for [square (iterate-board board)
          :when (p (board square))]
      nil)))
 
-(defn count-marked [board]
+(defn- count-marked [board]
   (countp board #(= % :marked)))
 
-(defn count-revealed [board]
+(defn- count-revealed [board]
   (countp board #(number? %)))
 
-(defn count-swines [board]
+(defn- count-swines [board]
   (countp board #(or (= % :swine)
                     (= % :exploding-swine))))
 
@@ -162,23 +163,23 @@
           (for [[x y] (iterate-board board)]
             [[x y] (reveal-square-on-win swines [x y])]))))
 
-(defn num-swines-unmarked [board]
+(defn- num-swines-unmarked [board]
   (- (:num-swines board) (count-marked board)))
 
-(defn is-game-lost [board]
+(defn- is-game-lost [board]
   (> (count-swines board) 0))
 
-(defn is-game-won [board]
+(defn- is-game-won [board]
   (= (count-revealed board)
      (- (* (:width board) (:height board)) (:num-swines board))))
 
-(defn new-game-state [board]
+(defn- new-game-state [board]
   (cond
     (is-game-won board)  :game-won
     (is-game-lost board) :game-lost
     :else :game-playing))
 
-(defn check-for-endgame [board]
+(defn- check-for-endgame [board]
   "Checks for the end of the game and updates game state."
   (let [new-state (new-game-state board)]
     (println new-state)

@@ -70,8 +70,6 @@
 (defn ajax-right-click [session x y]
   (let [board (:board session)
         board (mark board [x y])]
-
-    (println "monkeys: " board)
     (-> (pr-str board)
         (ring-response/response)
         (assoc :session (assoc session :board board)))))
