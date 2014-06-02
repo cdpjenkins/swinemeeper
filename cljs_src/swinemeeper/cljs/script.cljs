@@ -34,7 +34,7 @@
       (ev/listen! (dom/by-id (str x "_" y))
                   :click
                   (fn [event]
-                    (POST "/ajax-click"
+                    (POST "ajax-click"
                           {:params {:x x
                                     :y y}
                            :handler (fn [response]
@@ -42,7 +42,7 @@
       (ev/listen! (dom/by-id (str x "_" y))
                   :contextmenu
                   (fn [event]
-                    (POST "/ajax-right-click"
+                    (POST "ajax-right-click"
                           {:params {:x x
                                     :y y}
                            :handler (fn [response]
@@ -64,14 +64,14 @@
                  (states-to-strings (:state board))))
 
 (defn ^:export init []
-  (POST "/ajax-new-board "
+  (POST "ajax-new-board "
                       {:params {}
                        :handler (fn [response]
                                   (create-board))})
   (ev/listen! (dom/by-id "new-game")
               :click
               (fn [event]
-                (POST "/ajax-new-board "
+                (POST "ajax-new-board "
                       {:params {}
                        :handler (fn [response]
                                   (create-board))}))))
