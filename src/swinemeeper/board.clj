@@ -158,10 +158,10 @@
             [[x y] (reveal-square-on-lose swines [x y] board)]))))
 
 (defn fully-reveal-board-on-win [board]
-(let [swines (:swines board)]
+  (let [swines (:swines board)]
     (into board
           (for [[x y] (iterate-board board)]
-            [[x y] (reveal-square-on-winswines [x y])]))))
+            [[x y] (reveal-square-on-win swines [x y])]))))
 
 (defn- num-swines-unmarked [board]
   (- (:num-swines board) (count-marked board)))
