@@ -110,9 +110,9 @@
    {:swines swines
     :width width
     :height height
-    :num-swines (- (count swines) 2) ; HACK
+    :num-swines (count swines)
     :state :game-playing
-    :remaining-swines (- (count swines) 2)})) ; HACK
+    :remaining-swines (count swines)}))
 
 (defn print-board [board]
   (doseq [y (range (:height board))]
@@ -161,7 +161,7 @@
 (let [swines (:swines board)]
     (into board
           (for [[x y] (iterate-board board)]
-            [[x y] (reveal-square-on-win swines [x y])]))))
+            [[x y] (reveal-square-on-winswines [x y])]))))
 
 (defn- num-swines-unmarked [board]
   (- (:num-swines board) (count-marked board)))
@@ -182,7 +182,6 @@
 (defn- check-for-endgame [board]
   "Checks for the end of the game and updates game state."
   (let [new-state (new-game-state board)]
-    (println new-state)
     (condp = new-state
       :game-won (assoc (fully-reveal-board-on-win board)
                   :state new-state)

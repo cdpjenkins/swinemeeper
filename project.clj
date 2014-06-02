@@ -9,7 +9,8 @@
                  [cljs-ajax "0.2.3"]
                  [fogus/ring-edn "0.2.0"]]
   :plugins [[lein-cljsbuild "0.3.2"]
-            [lein-ring "0.8.10"]]
+            [lein-ring "0.8.10"]
+            [cider/cider-nrepl "0.6.0"]]
 
   :source-paths ["src"]
   :hooks [leiningen.cljsbuild]
