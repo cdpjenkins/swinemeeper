@@ -43,8 +43,7 @@
           :state  :game-playing
           :num-swines 1
           :remaining-swines 0
-          :swines (:swines board-2x2)}
-)))
+          :swines (:swines board-2x2)})))
 
 (deftest test-win-2x2
   (is (= (uncover board-2x2 [[1 0] [0 1] [1 1]])
