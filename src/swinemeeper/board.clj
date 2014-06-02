@@ -12,38 +12,36 @@
 	 nil      "."
 	 sq)))
 
-(defn iterate-board [board]
+(defn- iterate-board [board]
   (for [x (range (:width board))
         y (range (:height board))]
     [x y]))
 
-(defn print-swinefield [swinefield]
+(defn- print-swinefield [swinefield]
   (doseq [y (range (:height swinefield))]
     (doseq [x (range (:width swinefield))]
       (print (square-str (swinefield [x y]))))
     (println)))
 
-(defn adjacent? [ [x1 y1] [x2 y2]]
+(defn- adjacent? [ [x1 y1] [x2 y2]]
   (and
    (<= (Math/abs (- x1 x2)) 1)
    (<= (Math/abs (- y1 y2)) 1)))
 
 (defn make-swines [width height num-swines exclude-square]
-  (into
-   (apply hash-map
-          (interleave
-           (take num-swines
-                 (shuffle (for [square
-                                (for [x (range width)
-                                      y (range height)]
-                                  [x y])
-                                :when (not
-                                       (adjacent? square exclude-square))]
-                            square)))
-           (repeat :swine)))
-   {:width width :height height}))
+  (apply hash-map
+         (interleave
+          (take num-swines
+                (shuffle (for [square
+                               (for [x (range width)
+                                     y (range height)]
+                                 [x y])
+                               :when (not
+                                      (adjacent? square exclude-square))]
+                           square)))
+          (repeat :swine))))
 
-(defn make-neighbours [width height]
+(defn- make-neighbours [width height]
   (memoize
    (fn [[ x y]]
      (filter
@@ -63,26 +61,31 @@
 ;; TODO sort this out
 (def neighbours (atom (make-neighbours 15 10)))
 
-(defn is-swine [swines pos]
+(defn- is-swine [swines pos]
   (= (swines pos) :swine))
 
-(defn num-surrounding [swines pos]
+(defn- num-surrounding [swines pos]
   (count (filter #(is-swine swines %) (@neighbours pos))))
 
-(defn try-square [swines pos]
+(defn- try-square [swines pos]
   (if (is-swine swines pos)
     :exploding-swine
     (num-surrounding swines pos)))
 
-(defn reveal-square-on-win [swines pos]
+(defn- reveal-square-on-win [swines pos]
   (if (is-swine swines pos)
     :marked
     (num-surrounding swines pos)))
 
-(defn reveal-square-on-lose [swines pos board]
+(defn- reveal-square-on-lose [swines pos board]
   (if (is-swine swines pos)
-    :exploding-swine
-    (board pos)))
+    (condp = (board pos)
+      :exploding-swine :exploding-swine
+      :marked :marked
+      :swine)
+    (if (= (board pos) :marked)
+      :incorrectly-marked
+      (board pos))))
 
 ;; A board is a map from coord pair to either
 ;; :swine
@@ -114,7 +117,7 @@
     :state :game-playing
     :remaining-swines (count swines)}))
 
-(defn print-board [board]
+(defn- print-board [board]
   (doseq [y (range (:height board))]
     (doseq [x (range (:width board))]
       (print (square-str ( board [x y]))))
@@ -149,7 +152,7 @@
                     (= % :exploding-swine))))
 
 ;; Board manipulation functions
-(defn fully-reveal-board-on-lose [board]
+(defn- fully-reveal-board-on-lose [board]
   ;; TODO wrongly placed flags
   ;; TODO exploding swine on the place you just clickged
   (let [swines (:swines board)]
@@ -157,11 +160,13 @@
           (for [[x y] (iterate-board board)]
             [[x y] (reveal-square-on-lose swines [x y] board)]))))
 
-(defn fully-reveal-board-on-win [board]
+(defn- fully-reveal-board-on-win [board]
   (let [swines (:swines board)]
-    (into board
-          (for [[x y] (iterate-board board)]
-            [[x y] (reveal-square-on-win swines [x y])]))))
+    (assoc 
+        (into board
+              (for [[x y] (iterate-board board)]
+                [[x y] (reveal-square-on-win swines [x y])]))
+      :remaining-swines 0)))
 
 (defn- num-swines-unmarked [board]
   (- (:num-swines board) (count-marked board)))
@@ -188,7 +193,6 @@
       :game-lost (assoc (fully-reveal-board-on-lose board)
                    :state new-state)
       (assoc board :state new-state))))
-
 
 (defn uncover [board poses]
   (when (= (:state board) :game-playing)

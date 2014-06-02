@@ -1,7 +1,7 @@
 - fixup board.clj
 - write unit tests!
 - Refactor once we have decent tests ...
-- incorrectly placed flag on lose
+
 - make repl only happen on :dev ...
 
 - get rid of num-swines from board

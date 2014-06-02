@@ -40,12 +40,8 @@
                :id "new-game"}]
       [:div {:id "board-me-do:"}]
 
-      ;; (for [i (range 9)]
-      ;;   [:img {:src (str "images/" i ".png")
-      ;;          :id (str i)}])
-                                        ;(include-js "/js/script.js")
       (run-clojurescript
-       "/js/script.js"
+       "js/script.js"
        "swinemeeper.cljs.repl.connect()")]])
    (ring-response/response)
    (assoc :session (assoc session :ston "huss"))))
@@ -53,20 +49,16 @@
 (defn dump-session [session]
   (str session))
 
-(def board (atom (s/make-board (s/make-swines 10 10 10 [5 5]) 10 10)))
-
 (def counter (atom 0))
 
 (defn ajax-click [session x y]
   (let [board (:board session)
-        board (uncover board [[x y]])
-        ]
+        board (uncover board [[x y]])]
     (-> (pr-str board)
         (ring-response/response)
         (assoc :session (assoc session :board board)))))
  ;; bit weird, n'est ce pas?
 
-;; TODO this still does not use the session
 (defn ajax-right-click [session x y]
   (let [board (:board session)
         board (mark board [x y])]
