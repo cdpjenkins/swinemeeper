@@ -9,7 +9,8 @@
                  [cljs-ajax "0.2.3"]
                  [fogus/ring-edn "0.2.0"]]
   :plugins [[lein-cljsbuild "0.3.2"]
-            [lein-ring "0.7.0"]]
+            [lein-ring "0.8.10"]]
+
   :source-paths ["src"]
   :hooks [leiningen.cljsbuild]
   :cljsbuild {
@@ -52,3 +53,4 @@
   :ring {:handler swinemeeper.core/app}
   :main swinemeeper.core
   :uberjar-name "swinemeeper-standalone.jar")
+
