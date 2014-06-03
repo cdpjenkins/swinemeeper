@@ -1,25 +1,19 @@
 (ns swinemeeper.core
-  (:use
-   [swinemeeper.board :as s]
-   compojure.core
-   [ring.adapter.jetty :as ring]
-   [hiccup.core]
-   [hiccup.middleware :only (wrap-base-url)]
-   [ring.middleware.params :only [wrap-params]]
-   [ring.middleware.edn :only [wrap-edn-params]])
-  
+  (:use [swinemeeper.board :as s]
+        compojure.core
+        [ring.adapter.jetty :as ring]
+        [hiccup.core]
+        [hiccup.middleware :only (wrap-base-url)]
+        [ring.middleware.params :only [wrap-params]]
+        [ring.middleware.edn :only [wrap-edn-params]])
   (:require [compojure.route :as route]
             [compojure.handler :as handler]
             [compojure.response :as response]
             [ring.middleware.session :as session]
-
             [ring.util.response :as ring-response]
-            [hiccup
-             [page :refer [html5]]
+            [hiccup [page :refer [html5]]
              [page :refer [include-js]]
              [element :refer [javascript-tag]]]))
-  ;; (:require [compojure.handler :as handler]
-  ;;           [compojure.route :as route])
 
 (defn- run-clojurescript [path init]
   (list
@@ -43,8 +37,7 @@
       (run-clojurescript
        "js/script.js"
        "swinemeeper.cljs.repl.connect()")]])
-   (ring-response/response)
-   (assoc :session (assoc session :ston "huss"))))
+   (ring-response/response)))
 
 (defn dump-session [session]
   (str session))
@@ -58,8 +51,9 @@
         (sanitise-board)
         (pr-str)
         (ring-response/response)
+        ;; Finally we return both the sanitised board and also
+        ;; attach the unsanitised board to the session.
         (assoc :session (assoc session :board board)))))
-;; last line there is a bit weird eh
 
 (defn ajax-right-click [session x y]
   (let [board (:board session)

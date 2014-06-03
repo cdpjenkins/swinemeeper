@@ -7,7 +7,6 @@
 - no cheating in other AJAX fns
 - factor out common stuff in AJAX fns
 - latest versions of the libs that we use
-- remove crap from core.clj
 - Bring back state-pregame so we can not have a swine on the first square that you click on
 - double-dude
 
