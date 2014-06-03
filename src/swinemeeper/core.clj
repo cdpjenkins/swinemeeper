@@ -42,8 +42,6 @@
 (defn dump-session [session]
   (str session))
 
-(def counter (atom 0))
-
 (defn ajax-click [session x y]
   (let [board (-> (:board session)
                   (uncover [[x y]]))]
@@ -56,16 +54,20 @@
         (assoc :session (assoc session :board board)))))
 
 (defn ajax-right-click [session x y]
-  (let [board (:board session)
-        board (mark board [x y])]
-    (-> (pr-str board)
+  (let [board (-> (:board session)
+                  (mark [x y]))]
+    (-> board
+        (sanitise-board board)
+        (pr-str)
         (ring-response/response)
         (assoc :session (assoc session :board board)))))
 
 (defn ajax-new-board [session]
   (let [swines (s/make-swines 10 10 10 [5 5])
         board (s/make-board swines 10 10)]
-    (-> (pr-str board)
+    (-> board
+        (sanitise-board)
+        (pr-str)
         (ring-response/response)
         (assoc :session {:board board}))))
 
