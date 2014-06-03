@@ -15,7 +15,7 @@
    :game-won     "Game Won"
    :game-lost    "Game Lost"})
 
-(defn create-board []
+(defn create-board [board]
   (let [board-div (dom/by-id :board)]
     (dom/destroy-children! board-div)
     (dom/append! board-div
@@ -23,14 +23,14 @@
                   [:div {:id "swines-remaining"}]
                   [:div {:id "game-state"}]
                   [:table
-                   (for [y (range 10)]
+                   (for [y (range (:height board))]
                      [:tr
-                      (for [x (range 10)]
+                      (for [x (range (:width board))]
                         [:td
                          [:img {:src (str "images/:unknown.png")
                                 :id (str x "_" y)}]])])])))
-    (doseq [x (range 10)
-            y (range 10)]
+    (doseq [x (range (:height board))
+            y (range (:width board))]
       (ev/listen! (dom/by-id (str x "_" y))
                   :click
                   (fn [event]
@@ -50,8 +50,8 @@
                     (ev/prevent-default event)))))
 
 (defn update-thar-board [board]
-  (doseq [x (range 10)
-          y (range 10)]
+  (doseq [x (range (:height board))
+          y (range (:width board))]
     (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png")))
   (dom/set-text! (dom/by-id "swines-remaining")
                  (:remaining-swines board))
@@ -62,14 +62,14 @@
   (POST "ajax-new-board "
                       {:params {}
                        :handler (fn [response]
-                                  (create-board))})
+                                  (create-board response))})
   (ev/listen! (dom/by-id "new-game")
               :click
               (fn [event]
                 (POST "ajax-new-board "
                       {:params {}
                        :handler (fn [response]
-                                  (create-board))}))))
+                                  (create-board response))}))))
 
 (defn do-stuff []
   (init))

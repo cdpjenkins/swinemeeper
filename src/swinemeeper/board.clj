@@ -59,7 +59,8 @@
 	[ (+ x 1) (+ y 1) ]]))))
 
 ;; TODO sort this out
-(def neighbours (atom (make-neighbours 15 10)))
+;; TODO - cos - this limits the board to being no more than 100x100
+(def neighbours (atom (make-neighbours 100 100)))
 
 (defn- is-swine [swines pos]
   (= (swines pos) :swine))
