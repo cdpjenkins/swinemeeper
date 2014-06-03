@@ -1,8 +1,5 @@
-- fixup board.clj
-- write unit tests!
+- fixup board.clj some more
+- write more unit tests!
 - Refactor once we have decent tests ...
-
 - make repl only happen on :dev ...
 
-- get rid of num-swines from board
-- get rid of width/height from swines
