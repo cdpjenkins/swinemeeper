@@ -42,34 +42,29 @@
 (defn dump-session [session]
   (str session))
 
+(defn- ajax-response
+  "Common function for returning response to client and saving board state into session"
+  [board session]
+  (-> board
+      (sanitise-board)
+      (pr-str)
+      (ring-response/response)
+      (assoc :session (assoc session :board board))))
+
 (defn ajax-click [session x y]
   (let [board (-> (:board session)
                   (uncover [[x y]]))]
-    (-> board
-        (sanitise-board)
-        (pr-str)
-        (ring-response/response)
-        ;; Finally we return both the sanitised board and also
-        ;; attach the unsanitised board to the session.
-        (assoc :session (assoc session :board board)))))
+    (ajax-response board session)))
 
 (defn ajax-right-click [session x y]
   (let [board (-> (:board session)
                   (mark [x y]))]
-    (-> board
-        (sanitise-board board)
-        (pr-str)
-        (ring-response/response)
-        (assoc :session (assoc session :board board)))))
+    (ajax-response board session)))
 
 (defn ajax-new-board [session]
   (let [swines (s/make-swines 10 10 10 [5 5])
         board (s/make-board swines 10 10)]
-    (-> board
-        (sanitise-board)
-        (pr-str)
-        (ring-response/response)
-        (assoc :session {:board board}))))
+    (ajax-response board session)))
 
 (defn wrap-me-do [handler]
   (fn [req]
