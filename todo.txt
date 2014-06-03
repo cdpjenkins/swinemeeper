@@ -3,9 +3,9 @@
 - Refactor once we have decent tests ...
 - make repl only happen on :dev ...
 - Allow use to choose easy/med/hard games
-- make fns in core private if they aren't needed in other modules
-- no cheating in other AJAX fns
-- factor out common stuff in AJAX fns
+
+- factor out more stuff in AJAX fns
+
 - latest versions of the libs that we use
 - Bring back state-pregame so we can not have a swine on the first square that you click on
 - double-dude
