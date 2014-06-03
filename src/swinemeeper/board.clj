@@ -213,17 +213,7 @@
                         (rest poses))]
         (recur new-board new-poses)))))
 
-(defn mark [board [x y]]
-  (when (= (:state board) :game-playing)
-    (condp = (board [x y])
-      :unknown (let [board (assoc board [x y] :marked)]
-                 (assoc board :remaining-swines (num-swines-unmarked board)))
-      :marked (let [board (assoc board [x y] :unknown)]
-                (assoc board :remaining-swines (num-swines-unmarked board)))
-      board)))
-
 (defn double-dude [board [x y]]
-  ; TODO rename to something sensible
   (when (= (:state board) :game-playing)
     (let [square (board [x y])]
       (if (number? square)
@@ -233,3 +223,14 @@
                            (@neighbours [x y])))
           board)
         board))))
+
+(defn mark [board [x y]]
+  (when (= (:state board) :game-playing)
+    (cond 
+     (= (board [x y]) :unknown) (let [board (assoc board [x y] :marked)]
+                                  (assoc board :remaining-swines (num-swines-unmarked board)))
+
+     (= (board [x y]) :marked) (let [board (assoc board [x y] :unknown)]
+                                 (assoc board :remaining-swines (num-swines-unmarked board)))
+     (number? (board [x y])) (double-dude board [x y])
+     true board)))

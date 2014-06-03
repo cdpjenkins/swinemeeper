@@ -16,9 +16,9 @@
    :game-lost    "Game Lost"})
 
 (defn create-board []
-  (let [board (dom/by-id :board)]
-    (dom/destroy-children! board)
-    (dom/append! board
+  (let [board-div (dom/by-id :board)]
+    (dom/destroy-children! board-div)
+    (dom/append! board-div
                  (h/html
                   [:div {:id "swines-remaining"}]
                   [:div {:id "game-state"}]
@@ -47,11 +47,6 @@
                                     :y y}
                            :handler (fn [response]
                                       (update-thar-board response))})
-                    ;; TODO
-                    ;; (remote-callback :right-click
-                    ;;                  [x y]
-                    ;;                  (fn [result]
-                    ;;                    (update-thar-board result)))
                     (ev/prevent-default event)))))
 
 (defn update-thar-board [board]

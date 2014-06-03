@@ -69,3 +69,19 @@
           :state  :game-playing
           :num-swines 1
           :remaining-swines 1})))
+
+(deftest test-double-dude-2x2
+  (let [board (-> board-2x2
+                  (uncover [[1 0]])
+                  (mark [0 0]))]
+    (is (= (double-dude board [1 0])
+         {[0 0]   :marked
+          [0 1]   1
+          [1 0]   1
+          [1 1]   1
+          :width  2
+          :height 2
+          :state  :game-won
+          :num-swines 1
+          :remaining-swines 0
+          :swines (:swines board-2x2)}))))

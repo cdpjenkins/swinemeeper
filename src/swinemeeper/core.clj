@@ -62,8 +62,9 @@
     (ajax-response board session)))
 
 (defn ajax-new-board [session]
-  (let [swines (s/make-swines 10 10 10 [5 5])
-        board (s/make-board swines 10 10)]
+  (let [[width height num-swines]  [10 10 10] ;[16 16 40]   ;
+        swines (s/make-swines width height num-swines [5 5])
+        board (s/make-board swines width height)]
     (ajax-response board session)))
 
 (defn wrap-me-do [handler]
