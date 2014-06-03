@@ -194,6 +194,11 @@
                    :state new-state)
       (assoc board :state new-state))))
 
+(defn sanitise-board
+  "Removes :swines from the board - so the client can't cheat!"
+  [board]
+  (dissoc board :swines))
+
 (defn uncover [board poses]
   (when (= (:state board) :game-playing)
     (if (empty? poses)

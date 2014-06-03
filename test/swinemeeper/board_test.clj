@@ -57,3 +57,15 @@
           :num-swines 1
           :remaining-swines 0
           :swines (:swines board-2x2)})))
+
+(deftest sanitise-2x2
+  (is (= (sanitise-board board-2x2)
+         {[0 0]   :unknown
+          [0 1]   :unknown
+          [1 0]   :unknown
+          [1 1]   :unknown
+          :width  2
+          :height 2
+          :state  :game-playing
+          :num-swines 1
+          :remaining-swines 1})))

@@ -52,12 +52,14 @@
 (def counter (atom 0))
 
 (defn ajax-click [session x y]
-  (let [board (:board session)
-        board (uncover board [[x y]])]
-    (-> (pr-str board)
+  (let [board (-> (:board session)
+                  (uncover [[x y]]))]
+    (-> board
+        (sanitise-board)
+        (pr-str)
         (ring-response/response)
         (assoc :session (assoc session :board board)))))
- ;; bit weird, n'est ce pas?
+;; last line there is a bit weird eh
 
 (defn ajax-right-click [session x y]
   (let [board (:board session)
@@ -115,4 +117,3 @@
   (.start s)
   (.stop s)
 )
-
