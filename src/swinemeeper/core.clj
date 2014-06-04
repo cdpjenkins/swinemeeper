@@ -32,14 +32,12 @@
       [:input {:type "button"
                :value "New Game"
                :id "new-game"}]
-      [:div {:id "board-me-do:"}]
-
       (run-clojurescript
        "js/script.js"
        "swinemeeper.cljs.repl.connect()")]])
    (ring-response/response)))
 
-(defn dump-session [session]
+(defn- dump-session [session]
   (str session))
 
 (defn- ajax-response
