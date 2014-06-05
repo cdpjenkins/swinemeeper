@@ -4,13 +4,15 @@
 - make repl only happen on :dev ...
 - Allow use to choose easy/med/hard games
 
-- factor out more stuff in AJAX fns
-
 - latest versions of the libs that we use
 - Bring back state-pregame so we can not have a swine on the first square that you click on
 - double-dude
 
 - write simple tests for the web layer
+
+- factor web serverside stuff into
+  - routes.clj
+  - views.clj
 
 Making It Look Nice
 - re-do graphics somehow
