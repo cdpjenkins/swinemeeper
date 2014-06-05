@@ -49,26 +49,26 @@
       (ring-response/response)
       (assoc :session (assoc session :board board))))
 
-(defn ajax-fn [session f & rest]
+(defn- ajax-fn [session f & rest]
   (let [board (:board session)
         board (apply f (cons board rest))]
     (ajax-response board session)))
 
-(defn ajax-click [session x y]
+(defn- ajax-click [session x y]
   (ajax-fn session uncover [[x y]]))
 
-(defn ajax-right-click [session x y]
+(defn- ajax-right-click [session x y]
   (ajax-fn session mark [x y]))
 
-(defn ajax-new-board [session]
+(defn- ajax-new-board [session]
   (let [[width height num-swines] [16 16 40] ; [10 10 10] ; [30 16 99]
         swines (s/make-swines width height num-swines [5 5])
         board (s/make-board swines width height)]
     (ajax-response board session)))
 
-(defn wrap-me-do [handler]
+(defn- wrap-cache-control [handler]
   (fn [req]
-    (ring-response/header (handler req) "Cache-Control" "max-age=3" )))
+    (ring-response/header (handler req) "Cache-Control" "max-age=3600" )))
 
 (defroutes main-routes
   (GET "/" {session :session } (index session))
@@ -81,7 +81,7 @@
                              session :session}
         (do (ajax-right-click session x y)))
   (-> (route/resources "/")
-      (wrap-me-do))
+      (wrap-cache-control))
   (route/not-found "Page not found"))
 
 (def app
@@ -89,16 +89,12 @@
       (handler/site)
       (wrap-edn-params)))
 
-(def server (atom nil))
-
 (defn make-server
   ([]
      (make-server 8000))
   ([port]
      (let [port port]
-       ( when (not (nil? @server))
-         (.stop @server))
-       (reset! server (run-jetty (var app) {:port port :join? false})))))
+       (run-jetty (var app) {:port port :join? false}))))
 
 (defn -main [port ]
   (make-server (Integer/parseInt port)))

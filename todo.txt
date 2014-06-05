@@ -10,6 +10,8 @@
 - Bring back state-pregame so we can not have a swine on the first square that you click on
 - double-dude
 
+- write simple tests for the web layer
+
 Making It Look Nice
 - re-do graphics somehow
 - nice looking HTML - maybe look at bootstrap
