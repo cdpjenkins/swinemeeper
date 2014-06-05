@@ -49,15 +49,16 @@
       (ring-response/response)
       (assoc :session (assoc session :board board))))
 
-(defn ajax-click [session x y]
-  (let [board (-> (:board session)
-                  (uncover [[x y]]))]
+(defn ajax-fn [session f & rest]
+  (let [board (:board session)
+        board (apply f (cons board rest))]
     (ajax-response board session)))
 
+(defn ajax-click [session x y]
+  (ajax-fn session uncover [[x y]]))
+
 (defn ajax-right-click [session x y]
-  (let [board (-> (:board session)
-                  (mark [x y]))]
-    (ajax-response board session)))
+  (ajax-fn session mark [x y]))
 
 (defn ajax-new-board [session]
   (let [[width height num-swines] [16 16 40] ; [10 10 10] ; [30 16 99]
