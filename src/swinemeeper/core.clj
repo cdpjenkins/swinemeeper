@@ -25,16 +25,20 @@
    (html
     [:html
      [:head
-      [:title "Swinemeeper"]]
+      [:title "Swinemeeper"]
+      [:link {:href "style/style.css"
+              :rel "stylesheet"
+              :type "text/css"}]]
      [:body
-      [:h1 "Swinemeeper!"]
-      [:div {:id "board"}]
-      [:input {:type "button"
-               :value "New Game"
-               :id "new-game"}]
-      (run-clojurescript
-       "js/script.js"
-       "swinemeeper.cljs.repl.connect()")]])
+      [:center {:id "swinemeeper"}
+       [:h1 "Swinemeeper!"]
+       [:div {:id "board"}]
+       [:input {:type "button"
+                :value "New Game"
+                :id "new-game"}]
+       (run-clojurescript
+        "js/script.js"
+        "swinemeeper.cljs.repl.connect()")]]])
    (ring-response/response)))
 
 (defn- dump-session [session]
