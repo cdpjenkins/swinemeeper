@@ -92,7 +92,4 @@
                                   (create-board response))})
   )
 
-(defn do-stuff []
-  (init))
-
-(set! (.-onload js/window) do-stuff)
+(set! (.-onload js/window) init)
