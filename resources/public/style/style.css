@@ -7,3 +7,11 @@ body {
     margin-left: auto;
     margin-right: auto;
 }
+
+#swines-remaining {
+    float:left;
+}
+
+#game-state {
+    float: right;
+}

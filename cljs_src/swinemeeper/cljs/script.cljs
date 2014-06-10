@@ -20,9 +20,14 @@
     (dom/destroy-children! board-div)
     (dom/append! board-div
                  (h/html
-                  [:div {:id "swines-remaining"}]
-                  [:div {:id "game-state"}]
                   [:table
+                   [:tr
+                    [:td {:colspan "5"}
+                     [:div {:id "swines-remaining"} (:remaining-swines board)]]
+                    (for [i (range (- (:width board) 10))]
+                      [:td])
+                    [:td {:colspan "5"}
+                     [:div {:id "game-state"} (:state board)]]]
                    (for [y (range (:height board))]
                      [:tr
                       (for [x (range (:width board))]
