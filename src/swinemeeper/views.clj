@@ -23,10 +23,7 @@
      [:body
       [:center {:id "swinemeeper"}
        [:h1 "Swinemeeper!"]
-       [:div {:id "board"}]
-       [:input {:type "button"
-                :value "New Game"
-                :id "new-game"}]]]])
+       [:div {:id "board"}]]]])
    (ring-response/response)))
 
 (defn dump-session [session]

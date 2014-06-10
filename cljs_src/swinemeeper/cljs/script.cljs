@@ -33,7 +33,22 @@
                       (for [x (range (:width board))]
                         [:td
                          [:img {:src (str "images/:unknown.png")
-                                :id (str x "_" y)}]])])])))
+                                :id (str x "_" y)}]])])]
+                  [:form {:id "new-game-form"}
+                   [:fieldset
+                    [:label
+                     "Easy"
+                     [:input {:type "radio" :name "type" :checked "no"}]]
+                    [:label
+                     "Medium"
+                     [:input {:type "radio" :name "type" :checked "no"}]]
+                    [:label
+                     "Hard"
+                     [:input {:type "radio" :name "type" :checked "no"}]]
+                    [:input {:type "button"
+                             :value "New Game"
+                             :id "new-game"}]]])))
+
     (doseq [x (range (:height board))
             y (range (:width board))]
       (ev/listen! (dom/by-id (str x "_" y))
@@ -52,7 +67,14 @@
                                     :y y}
                            :handler (fn [response]
                                       (update-thar-board response))})
-                    (ev/prevent-default event)))))
+                    (ev/prevent-default event))))
+    (ev/listen! (dom/by-id "new-game")
+                :click
+                (fn [event]
+                  (POST "ajax-new-board "
+                        {:params {}
+                         :handler (fn [response]
+                                    (create-board response))}))))
 
 (defn update-thar-board [board]
   (doseq [x (range (:height board))
@@ -68,13 +90,7 @@
                       {:params {}
                        :handler (fn [response]
                                   (create-board response))})
-  (ev/listen! (dom/by-id "new-game")
-              :click
-              (fn [event]
-                (POST "ajax-new-board "
-                      {:params {}
-                       :handler (fn [response]
-                                  (create-board response))}))))
+  )
 
 (defn do-stuff []
   (init))
