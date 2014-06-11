@@ -50,7 +50,7 @@
   (ajax-fn session mark [x y]))
 
 (defn ajax-new-board [session]
-  (let [[width height num-swines] [16 16 40] ; [10 10 10] ; [30 16 99]
+  (let [[width height num-swines] [10 10 10] ; [30 16 99] ; [16 16 40] ; 
         swines (s/make-swines width height num-swines [5 5])
         board (s/make-board swines width height)]
     (ajax-response board session)))
