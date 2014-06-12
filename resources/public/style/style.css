@@ -27,3 +27,11 @@ div#game-state {
 #game-state {
     float: right;
 }
+
+div#game-types {
+    float: left;
+}
+
+div#new-game-button-div {
+    float: right;
+}

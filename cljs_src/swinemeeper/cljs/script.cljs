@@ -33,21 +33,28 @@
                       (for [x (range (:width board))]
                         [:td
                          [:img {:src (str "images/:unknown.png")
-                                :id (str x "_" y)}]])])]
-                  [:form {:id "new-game-form"}
-                   [:fieldset {:id "game-type"}
-                    [:label
-                     "Easy"
-                     [:input {:type "radio" :name "type" :value "Easy" :id "easy-button"}]]
-                    [:label
-                     "Medium"
-                     [:input {:type "radio" :name "type" :value "Medium" :id "medium-button"}]]
-                    [:label
-                     "Hard"
-                     [:input {:type "radio" :name "type" :value "Hard" :id "hard-button"}]]
-                    [:input {:type "button"
-                             :value "New Game"
-                             :id "new-game"}]]])))
+                                :id (str x "_" y)}]])])
+                   [:tr
+                    [:td {:colspan (str (:width board))}
+                     [:form {:id "new-game-form"}
+                      [:center
+                       [:div {:id "game-types"}
+                        [:label
+                         "Easy"
+                         [:input {:type "radio" :name "type" :value "Easy" :id "easy-button"}]]
+                        [:label
+                         "Medium"
+                         [:input {:type "radio" :name "type" :value "Medium" :id "medium-button"}]]
+                        [:label
+                         "Hard"
+                         [:input {:type "radio" :name "type" :value "Hard" :id "hard-button"}]]]
+                       [:div {:id "new-game-button-div"}
+                        [:input {:type "button"
+                                 :value "New Game"
+                                 :id "new-game"}]]]]]]
+
+]
+                  )))
 
   (ev/listen! (dom/by-id "easy-button")
               :click
