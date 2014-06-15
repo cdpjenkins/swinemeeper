@@ -2,7 +2,6 @@
 - write more unit tests!
 - Refactor once we have decent tests ...
 - make repl only happen on :dev ...
-- Allow use to choose easy/med/hard games
 - Bring back state-pregame so we can not have a swine on the first square that you click on
 - write simple tests for the web layer
   - use ring-mock!!!
@@ -13,9 +12,4 @@ Making It Look Nice
 - re-do graphics somehow
 - nice looking HTML - maybe look at bootstrap
 - Big message on screen when game lost or won
-
-
-
-
-//*[@id="easy-button"]
-var element = document.evaluate( '' ,document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null ).singleNodeValue;
+- Make choice of game-type look pleasant and non-rubbish
