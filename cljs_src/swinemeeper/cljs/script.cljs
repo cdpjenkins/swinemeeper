@@ -24,29 +24,35 @@
                  (h/html
                   [:table
                    [:tr
-                    [:td {:colspan "5"}
+                    [:td {:colspan "3"}
                      [:div {:id "swines-remaining"} (:remaining-swines board)]]
                     (for [i (range (- (:width board) 10))]
                       [:td])
-                    [:td {:colspan "5"}
+                    [:td {:colspan "7"}
                      [:div {:id "game-state"} (:state board)]]]
                    (for [y (range (:height board))]
                      [:tr
                       (for [x (range (:width board))]
                         [:td
                          [:img {:src (str "images/:unknown.png")
-                                :id (str x "_" y)}]])])
+                                :id (str x "_" y)
+                                ;:width 25
+                                ;:height 25
+                                }]])])
                    [:tr
                     [:td {:colspan (str (:width board))}
                      [:form {:id "new-game-form"}
                       [:center
                        [:div {:id "game-types"}
-                        "Easy"
-                        [:input {:type "radio" :name "type" :value "Easy" :id "easy-button"}]
-                        "Medium"
-                        [:input {:type "radio" :name "type" :value "Medium" :id "medium-button"}]
-                        "Hard"
-                        [:input {:type "radio" :name "type" :value "Hard" :id "hard-button"}]]
+                        [:span {:id "game-type"}
+                         "Easy"
+                         [:input {:type "radio" :name "type" :value "Easy" :id "easy-button"}]]
+                        [:span {:id "game-type"}
+                         "Medium"
+                         [:input {:type "radio" :name "type" :value "Medium" :id "medium-button"}]]
+                        [:span {:id "game-type"}
+                         "Hard"
+                         [:input {:type "radio" :name "type" :value "Hard" :id "hard-button"}]]]
                        [:div {:id "new-game-button-div"}
                         [:input {:type "button"
                                  :value "New Game"
@@ -91,7 +97,7 @@
               :click
               (fn [event]
                 (log "ston")
-                (let [buttons (dom/nodes (xpath "//div[@id='game-types']/input[@name='type']"))
+                (let [buttons (dom/nodes (xpath "//div[@id='game-types']//input[@name='type']"))
                       selected (dom/single-node (filter #(.-checked %) buttons))
                       game-type (if selected
                                   (.-value selected)
