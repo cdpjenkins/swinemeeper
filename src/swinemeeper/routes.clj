@@ -15,7 +15,8 @@
 (defroutes main-routes
   (GET "/" {session :session } (view/index session))
   (GET "/dump-session" {session :session} (view/dump-session session))
-  (POST "/ajax-new-board" {session :session} (view/ajax-new-board session))
+  (POST "/ajax-new-board" {{game-type :game-type} :params
+                           session :session} (view/ajax-new-board session game-type))
   (POST "/ajax-click" {{x :x, y :y} :params
                        session :session} (do
                                            (view/ajax-click session x y)))

@@ -8,7 +8,9 @@
 
 (defn- include-clojurescript []
   (list
-   (include-js "js/script.js")))
+   (include-js "js/script.js")
+ ;  (javascript-tag "swinemeeper.cljs.repl.connect()")
+   ))
 
 (defn index [session]
   (->
@@ -49,10 +51,16 @@
 (defn ajax-right-click [session x y]
   (ajax-fn session mark [x y]))
 
-(defn ajax-new-board [session]
-  (let [[width height num-swines] [10 10 10] ; [30 16 99] ; [16 16 40] ; 
+(def game-types {"Easy" [10 10 10]
+                 "Medium" [16 16 40]
+                 "Hard" [30 16 99]})
+
+(defn ajax-new-board [session game-type]
+  (let [game-type (if game-type game-type "Easy")
+        [width height num-swines] (game-types game-type)
         swines (s/make-swines width height num-swines [5 5])
         board (s/make-board swines width height)]
+    (println game-type)
     (ajax-response board session)))
 
 

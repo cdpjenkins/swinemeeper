@@ -1,9 +1,10 @@
 (ns swinemeeper.cljs.script
+  (:use [domina.xpath :only [xpath]])
   (:require [domina :as dom]
-            [domina.xpath :refer [xpath]]
             [domina.events :as ev]
             [hiccups.runtime :as hiccupsrt]
-            [ajax.core :refer [GET POST]])
+            [ajax.core :refer [GET POST]]
+            [swinemeeper.cljs.repl :as smrepl])
   (:require-macros [hiccups.core :as h]))
 
 (defn log [& rest]
@@ -16,6 +17,7 @@
    :game-lost    "Game Lost"})
 
 (defn create-board [board]
+  (log board)
   (let [board-div (dom/by-id :board)]
     (dom/destroy-children! board-div)
     (dom/append! board-div
@@ -39,15 +41,12 @@
                      [:form {:id "new-game-form"}
                       [:center
                        [:div {:id "game-types"}
-                        [:label
-                         "Easy"
-                         [:input {:type "radio" :name "type" :value "Easy" :id "easy-button"}]]
-                        [:label
-                         "Medium"
-                         [:input {:type "radio" :name "type" :value "Medium" :id "medium-button"}]]
-                        [:label
-                         "Hard"
-                         [:input {:type "radio" :name "type" :value "Hard" :id "hard-button"}]]]
+                        "Easy"
+                        [:input {:type "radio" :name "type" :value "Easy" :id "easy-button"}]
+                        "Medium"
+                        [:input {:type "radio" :name "type" :value "Medium" :id "medium-button"}]
+                        "Hard"
+                        [:input {:type "radio" :name "type" :value "Hard" :id "hard-button"}]]
                        [:div {:id "new-game-button-div"}
                         [:input {:type "button"
                                  :value "New Game"
@@ -68,8 +67,8 @@
               :click
               #(log "hard"))
 
-  (doseq [x (range (:height board))
-          y (range (:width board))]
+  (doseq [y (range (:height board))
+          x (range (:width board))]
     (ev/listen! (dom/by-id (str x "_" y))
                 :click
                 (fn [event]
@@ -91,14 +90,20 @@
   (ev/listen! (dom/by-id "new-game")
               :click
               (fn [event]
-                (POST "ajax-new-board "
-                      {:params {}
-                       :handler (fn [response]
-                                  (create-board response))}))))
+                (log "ston")
+                (let [buttons (dom/nodes (xpath "//div[@id='game-types']/input[@name='type']"))
+                      selected (dom/single-node (filter #(.-checked %) buttons))
+                      game-type (if selected
+                                  (.-value selected)
+                                  "Easy")]
+                  (POST "ajax-new-board "
+                        {:params {:game-type game-type}
+                         :handler (fn [response]
+                                    (create-board response))})))))
 
 (defn update-thar-board [board]
-  (doseq [x (range (:height board))
-          y (range (:width board))]
+  (doseq [y (range (:height board))
+          x (range (:width board))]
     (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png")))
   (dom/set-text! (dom/by-id "swines-remaining")
                  (:remaining-swines board))
@@ -106,6 +111,7 @@
                  (states-to-strings (:state board))))
 
 (defn ^:export init []
+  (smrepl/connect)
   (POST "ajax-new-board "
                       {:params {}
                        :handler (fn [response]
