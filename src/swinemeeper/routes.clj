@@ -5,12 +5,20 @@
   (:require [swinemeeper.views :as view]
             [compojure.handler :as handler]
             [compojure.route :as route]
-            [ring.util.response :as ring-response])
+            [ring.util.response :as resp])
   (:gen-class))
 
 (defn- wrap-cache-control [handler]
   (fn [req]
-    (ring-response/header (handler req) "Cache-Control" "max-age=3600" )))
+    (resp/header (handler req) "Cache-Control" "max-age=3600" )))
+
+(defn- wrap-silly-redirect [handler]
+  (fn [req]
+    (if-let [path-info (:path-info req)]
+      (if (= path-info "")
+        (resp/redirect (str (:uri req) "/"))
+        (handler req))
+      (handler req))))
 
 (defroutes main-routes
   (GET "/" {session :session } (view/index session))
@@ -23,7 +31,8 @@
   (POST "/ajax-right-click" {{x :x, y :y} :params
                              session :session} (view/ajax-right-click session x y))
   (-> (route/resources "/")
-      (wrap-cache-control))
+      (wrap-cache-control)
+      (wrap-silly-redirect))
   (route/not-found "Page not found"))
 
 (def app
