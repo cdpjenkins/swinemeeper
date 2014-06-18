@@ -11,8 +11,7 @@
                  [hiccups "0.3.0"]
                  [cljs-ajax "0.2.4"]]
   :plugins [[lein-cljsbuild "1.0.3"]
-            [org.clojars.cdpjenkins/lein-ring "0.8.11-SNAPSHOT"]
-            ;[lein-ring "0.8.10"]
+            [lein-ring "0.8.11"]
             [cider/cider-nrepl "0.6.0"]]
 
   :source-paths ["src"]
