@@ -12,15 +12,8 @@
   (fn [req]
     (resp/header (handler req) "Cache-Control" "max-age=3600" )))
 
-(defn- wrap-silly-redirect [handler]
-  (fn [req]
-    (if-let [path-info (:path-info req)]
-      (if (= path-info "")
-        (resp/redirect (str (:uri req) "/"))
-        (handler req))
-      (handler req))))
-
 (defroutes main-routes
+  (GET "" {uri :uri}  (resp/redirect (str uri "/")))
   (GET "/" {session :session } (view/index session))
   (GET "/dump-session" {session :session} (view/dump-session session))
   (POST "/ajax-new-board" {{game-type :game-type} :params
@@ -31,8 +24,7 @@
   (POST "/ajax-right-click" {{x :x, y :y} :params
                              session :session} (view/ajax-right-click session x y))
   (-> (route/resources "/")
-      (wrap-cache-control)
-      (wrap-silly-redirect))
+      (wrap-cache-control))
   (route/not-found "Page not found"))
 
 (def app
