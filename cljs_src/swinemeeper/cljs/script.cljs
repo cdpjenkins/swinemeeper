@@ -10,14 +10,22 @@
 (defn log [& rest]
   (.log js/console (apply str rest)))
 
+;; TDO - to cljx
 (def states-to-strings
-  {
-   :game-playing "Game Playing"
+  {:game-playing "Game Playing"
    :game-won     "Game Won"
    :game-lost    "Game Lost"})
 
+(defn update-thar-board [board]
+  (doseq [y (range (:height board))
+          x (range (:width board))]
+    (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png")))
+  (dom/set-text! (dom/by-id "swines-remaining")
+                 (:remaining-swines board))
+  (dom/set-text! (dom/by-id "game-state")
+                 (states-to-strings (:state board))))
+
 (defn create-board [board]
-  (log board)
   (let [board-div (dom/by-id :board)]
     (dom/destroy-children! board-div)
     (dom/append! board-div
@@ -56,22 +64,16 @@
                        [:div {:id "new-game-button-div"}
                         [:input {:type "button"
                                  :value "New Game"
-                                 :id "new-game"}]]]]]]
-
-]
-                  )))
+                                 :id "new-game"}]]]]]]])))
 
   (ev/listen! (dom/by-id "easy-button")
-              :click
-              #(log "easy"))
+              :click)
 
   (ev/listen! (dom/by-id "medium-button")
-              :click
-              #(log "medium"))
+              :click)
 
   (ev/listen! (dom/by-id "hard-button")
-              :click
-              #(log "hard"))
+              :click)
 
   (doseq [y (range (:height board))
           x (range (:width board))]
@@ -96,7 +98,6 @@
   (ev/listen! (dom/by-id "new-game")
               :click
               (fn [event]
-                (log "ston")
                 (let [buttons (dom/nodes (xpath "//div[@id='game-types']//input[@name='type']"))
                       selected (dom/single-node (filter #(.-checked %) buttons))
                       game-type (if selected
@@ -107,14 +108,7 @@
                          :handler (fn [response]
                                     (create-board response))})))))
 
-(defn update-thar-board [board]
-  (doseq [y (range (:height board))
-          x (range (:width board))]
-    (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png")))
-  (dom/set-text! (dom/by-id "swines-remaining")
-                 (:remaining-swines board))
-  (dom/set-text! (dom/by-id "game-state")
-                 (states-to-strings (:state board))))
+
 
 (defn ^:export init []
   (smrepl/connect)

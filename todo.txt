@@ -7,6 +7,9 @@
   - use ring-mock!!!
 - get rid of all those Clojurscript warnings!!!
 - error handling in the Clojurescript stuff
+- Tidy up script.cljs.
+  - create and update board fns possiblye duplicate stuff
+  - don't use the word thar
 
 Making It Look Nice 
 - re-do graphics somehow
