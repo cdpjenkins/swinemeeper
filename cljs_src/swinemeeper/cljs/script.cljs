@@ -10,7 +10,7 @@
 (defn log [& rest]
   (.log js/console (apply str rest)))
 
-;; TDO - to cljx
+;; TODO - to cljx
 (def states-to-strings
   {:game-playing "Game Playing"
    :game-won     "Game Won"
@@ -37,7 +37,8 @@
                     (for [i (range (- (:width board) 10))]
                       [:td])
                     [:td {:colspan "7"}
-                     [:div {:id "game-state"} (:state board)]]]
+                     [:div {:id "game-state"}
+                      (states-to-strings (:state board))]]]
                    (for [y (range (:height board))]
                      [:tr
                       (for [x (range (:width board))]
@@ -67,13 +68,16 @@
                                  :id "new-game"}]]]]]]])))
 
   (ev/listen! (dom/by-id "easy-button")
-              :click)
+              :click
+              #(log "Easy"))
 
   (ev/listen! (dom/by-id "medium-button")
-              :click)
+              :click
+              #(log "Med"))
 
   (ev/listen! (dom/by-id "hard-button")
-              :click)
+              :click
+              #(log "Hard"))
 
   (doseq [y (range (:height board))
           x (range (:width board))]
@@ -88,6 +92,7 @@
     (ev/listen! (dom/by-id (str x "_" y))
                 :contextmenu
                 (fn [event]
+                  (log "ffs")
                   (POST "ajax-right-click"
                         {:params {:x x
                                   :y y}
