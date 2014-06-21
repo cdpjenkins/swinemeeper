@@ -16,7 +16,7 @@
    :game-won     "Game Won"
    :game-lost    "Game Lost"})
 
-(defn update-thar-board [board]
+(defn update-board [board]
   (doseq [y (range (:height board))
           x (range (:width board))]
     (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png")))
@@ -88,7 +88,7 @@
                         {:params {:x x
                                   :y y}
                          :handler (fn [response]
-                                    (update-thar-board response))})))
+                                    (update-board response))})))
     (ev/listen! (dom/by-id (str x "_" y))
                 :contextmenu
                 (fn [event]
@@ -97,7 +97,7 @@
                         {:params {:x x
                                   :y y}
                          :handler (fn [response]
-                                    (update-thar-board response))})
+                                    (update-board response))})
                   (ev/prevent-default event))))
   
   (ev/listen! (dom/by-id "new-game")
