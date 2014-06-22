@@ -27,6 +27,7 @@
   :ring {:handler swinemeeper.routes/app
          :uberwar-name "swinemeeper.war"}
   :main swinemeeper.routes
+  :aot :all
   :uberjar-name "swinemeeper.jar"
 )
 
