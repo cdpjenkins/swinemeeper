@@ -4,7 +4,12 @@
 
 (def board-2x2
   (let [swines {[0 0] :swine}]
-    (make-board swines 2 2)))
+    (-> (make-board 1 2 2)
+        (assoc :swines swines)
+        (assoc :state :game-playing))))
+
+(deftest test-initial-state-pregame
+  (is (= (:state (make-board 10 10 10)) :pregame)))
 
 (deftest test-uncover-bad-2x2
   (is (= (uncover board-2x2 [[0 0]])

@@ -103,7 +103,7 @@
 ;; :state           <-- {:game-playing, :game-won, :game-lost}
 ;; :remaining-swines
 
-(defn make-board [swines width height]
+(defn make-board [num-swines width height]
   (into
    (apply hash-map
           (interleave
@@ -111,12 +111,11 @@
                  x (range width)]
              [x y])
            (repeat :unknown)))
-   {:swines swines
-    :width width
+   {:width width
     :height height
-    :num-swines (count swines)
-    :state :game-playing
-    :remaining-swines (count swines)}))
+    :num-swines num-swines
+    :state :pregame
+    :remaining-swines num-swines}))
 
 (defn- print-board [board]
   (doseq [y (range (:height board))]
@@ -201,7 +200,8 @@
   (dissoc board :swines))
 
 (defn uncover [board poses]
-  (when (= (:state board) :game-playing)
+  (condp = (:state board)
+    :game-playing
     (if (empty? poses)
       (check-for-endgame board)
       (let [pos (first poses)
@@ -212,7 +212,15 @@
                            (= square 0))
                         (concat (rest poses) (@neighbours pos))
                         (rest poses))]
-        (recur new-board new-poses)))))
+        (recur new-board new-poses)))
+    :pregame
+    (-> board
+        (assoc :state :game-playing)
+        (assoc :swines (make-swines (:width board)
+                                    (:height board)
+                                    (:num-swines board)
+                                    (first poses)))
+        (uncover poses))))
 
 (defn double-dude [board [x y]]
   (when (= (:state board) :game-playing)
@@ -226,7 +234,7 @@
         board))))
 
 (defn mark [board [x y]]
-  (when (= (:state board) :game-playing)
+  (if (= (:state board) :game-playing)
     (cond 
      (= (board [x y]) :unknown) (let [board (assoc board [x y] :marked)]
                                   (assoc board :remaining-swines (num-swines-unmarked board)))
@@ -234,4 +242,5 @@
      (= (board [x y]) :marked) (let [board (assoc board [x y] :unknown)]
                                  (assoc board :remaining-swines (num-swines-unmarked board)))
      (number? (board [x y])) (double-dude board [x y])
-     true board)))
+     true board)
+    board))

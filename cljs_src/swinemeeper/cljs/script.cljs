@@ -12,7 +12,8 @@
 
 ;; TODO - to cljx
 (def states-to-strings
-  {:game-playing "Game Playing"
+  {:pregame      "Pregame"
+   :game-playing "Game Playing"
    :game-won     "Game Won"
    :game-lost    "Game Lost"})
 
