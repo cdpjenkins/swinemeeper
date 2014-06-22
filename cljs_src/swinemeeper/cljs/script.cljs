@@ -32,11 +32,8 @@
                  (h/html
                   [:table
                    [:tr
-                    [:td {:colspan "3"}
-                     [:div {:id "swines-remaining"} (:remaining-swines board)]]
-                    (for [i (range (- (:width board) 10))]
-                      [:td])
-                    [:td {:colspan "7"}
+                    [:td {:colspan (str (:width board))}
+                     [:div {:id "swines-remaining"} (:remaining-swines board)]
                      [:div {:id "game-state"}
                       (states-to-strings (:state board))]]]
                    (for [y (range (:height board))]
@@ -45,9 +42,8 @@
                         [:td
                          [:img {:src (str "images/:unknown.png")
                                 :id (str x "_" y)
-                                ;:width 25
-                                ;:height 25
-                                }]])])
+                                :width 30
+                                :height 30}]])])
                    [:tr
                     [:td {:colspan (str (:width board))}
                      [:form {:id "new-game-form"}

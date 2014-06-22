@@ -1,3 +1,5 @@
+- fill in the game-type radio dude with the right game-type
+
 - fixup board.clj some more
 - write more unit tests!
 - Refactor once we have decent tests ...
@@ -16,3 +18,5 @@ Making It Look Nice
 - nice looking HTML - maybe look at bootstrap
 - Big message on screen when game lost or won
 - Make choice of game-type look pleasant and non-rubbish
+
+- Hmmm. Maybe this should use Om. Or just have a state atom. For fun and that.
