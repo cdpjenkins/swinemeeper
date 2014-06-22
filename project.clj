@@ -1,4 +1,4 @@
-(defproject swinemeeper "0.11.1"
+(defproject swinemeeper "0.11.2-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/clojure-contrib "1.2.0"]
                  [compojure "1.1.8"]
