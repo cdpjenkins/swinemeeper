@@ -7,16 +7,16 @@ h1 {
     font-size: 4em;
 }
 
-div#swines-remaining {
+/*div#swines-remaining {
     font-size: 2em;
 }
+*/
 
-div#game-state {
+/*div#game-state {
     font-size: 2em;
-}
+}*/
 
 #swinemeeper {
-/*    margin: 0 auto; */
     margin-left: auto;
     margin-right: auto;
 }

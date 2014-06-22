@@ -17,20 +17,28 @@
    :game-won     "Game Won"
    :game-lost    "Game Lost"})
 
-(defn update-board [board]
+(defn- update-board [board]
   (doseq [y (range (:height board))
           x (range (:width board))]
     (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png")))
-  (dom/set-text! (dom/by-id "swines-remaining")
-                 (:remaining-swines board))
-  (dom/set-text! (dom/by-id "game-state")
-                 (states-to-strings (:state board))))
+  (let [header-row (dom/by-id "header-row")
+        state (:state board)]
+    (dom/destroy-children! header-row)
+    (dom/append!
+       header-row
+       (condp = state
+         :game-lost (h/html [:center "You lose, sucker!"])
+         :game-won (h/html [:center "You win! Hoo-ray!"])
+         (h/html
+          [:div {:id "swines-remaining"} (:remaining-swines board)]
+          [:div {:id "game-state"}
+           (states-to-strings (:state board))])))))
 
 (defn- make-type-radio [board type id]
   (let [attrs {:type "radio"
-            :name "type"
-            :value type
-            :id id}
+               :name "type"
+               :value type
+               :id id}
         attrs (if (= (:type board) type)
                 (assoc attrs :checked "true")
                 attrs)]
@@ -38,7 +46,7 @@
      type
      [:input attrs]]))
 
-(defn create-board [board]
+(defn- create-board [board]
   (let [board-div (dom/by-id :board)]
     (dom/destroy-children! board-div)
     (dom/append! board-div
@@ -46,9 +54,7 @@
                   [:table
                    [:tr
                     [:td {:colspan (str (:width board))}
-                     [:div {:id "swines-remaining"} (:remaining-swines board)]
-                     [:div {:id "game-state"}
-                      (states-to-strings (:state board))]]]
+                     [:div {:id "header-row"}]]]
                    (for [y (range (:height board))]
                      [:tr
                       (for [x (range (:width board))]
@@ -98,7 +104,6 @@
     (ev/listen! (dom/by-id (str x "_" y))
                 :contextmenu
                 (fn [event]
-                  (log "ffs")
                   (POST "ajax-right-click"
                         {:params {:x x
                                   :y y}
@@ -114,16 +119,17 @@
                       game-type (if selected
                                   (.-value selected)
                                   "Easy")]
-                  (POST "ajax-new-board "
+                  (POST "ajax-new-board"
                         {:params {:game-type game-type}
                          :handler (fn [response]
-                                    (create-board response))})))))
+                                    (create-board response))}))))
+  (update-board board))
 
 
 
 (defn ^:export init []
   (smrepl/connect)
-  (POST "ajax-new-board "
+  (POST "ajax-new-board"
                       {:params {}
                        :handler (fn [response]
                                   (create-board response))}))
