@@ -4,12 +4,14 @@
 
 (def board-2x2
   (let [swines {[0 0] :swine}]
-    (-> (make-board 1 2 2)
+    (-> (make-board 1 2 2 "Custom")
         (assoc :swines swines)
         (assoc :state :game-playing))))
 
 (deftest test-initial-state-pregame
-  (is (= (:state (make-board 10 10 10)) :pregame)))
+  (let [board (make-board 10 10 10 "Cheese")]
+    (is (= (:state board) :pregame))
+    (is (= (:type board) "Cheese"))))
 
 (deftest test-uncover-bad-2x2
   (is (= (uncover board-2x2 [[0 0]])
@@ -22,7 +24,8 @@
           :state  :game-lost
           :num-swines 1
           :remaining-swines 1
-          :swines (:swines board-2x2)})))
+          :swines (:swines board-2x2)
+          :type "Custom"})))
 
 (deftest test-uncover-good-2x2
   (is (= (uncover board-2x2 [[1 1]])
@@ -35,7 +38,8 @@
             :state  :game-playing
             :num-swines 1
             :remaining-swines 1
-            :swines (:swines board-2x2)})))
+            :swines (:swines board-2x2)
+            :type "Custom"})))
 
 (deftest test-mark-good-2x2
   (is (= (mark board-2x2 [0 0])
@@ -48,7 +52,8 @@
           :state  :game-playing
           :num-swines 1
           :remaining-swines 0
-          :swines (:swines board-2x2)})))
+          :swines (:swines board-2x2)
+          :type "Custom"})))
 
 (deftest test-win-2x2
   (is (= (uncover board-2x2 [[1 0] [0 1] [1 1]])
@@ -61,7 +66,8 @@
           :state  :game-won
           :num-swines 1
           :remaining-swines 0
-          :swines (:swines board-2x2)})))
+          :swines (:swines board-2x2)
+          :type "Custom"})))
 
 (deftest sanitise-2x2
   (is (= (sanitise-board board-2x2)
@@ -73,7 +79,8 @@
           :height 2
           :state  :game-playing
           :num-swines 1
-          :remaining-swines 1})))
+          :remaining-swines 1
+          :type "Custom"})))
 
 (deftest test-double-dude-2x2
   (let [board (-> board-2x2
@@ -89,4 +96,5 @@
           :state  :game-won
           :num-swines 1
           :remaining-swines 0
-          :swines (:swines board-2x2)}))))
+          :swines (:swines board-2x2)
+          :type "Custom"}))))

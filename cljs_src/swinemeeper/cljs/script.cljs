@@ -26,6 +26,18 @@
   (dom/set-text! (dom/by-id "game-state")
                  (states-to-strings (:state board))))
 
+(defn- make-type-radio [board type id]
+  (let [attrs {:type "radio"
+            :name "type"
+            :value type
+            :id id}
+        attrs (if (= (:type board) type)
+                (assoc attrs :checked "true")
+                attrs)]
+    [:span {:id "game-type"}
+     type
+     [:input attrs]]))
+
 (defn create-board [board]
   (let [board-div (dom/by-id :board)]
     (dom/destroy-children! board-div)
@@ -50,15 +62,9 @@
                      [:form {:id "new-game-form"}
                       [:center
                        [:div {:id "game-types"}
-                        [:span {:id "game-type"}
-                         "Easy"
-                         [:input {:type "radio" :name "type" :value "Easy" :id "easy-button"}]]
-                        [:span {:id "game-type"}
-                         "Medium"
-                         [:input {:type "radio" :name "type" :value "Medium" :id "medium-button"}]]
-                        [:span {:id "game-type"}
-                         "Hard"
-                         [:input {:type "radio" :name "type" :value "Hard" :id "hard-button"}]]]
+                        (make-type-radio board "Easy" "easy-button")
+                        (make-type-radio board "Medium" "medium-button")
+                        (make-type-radio board "Hard" "hard-button")]
                        [:div {:id "new-game-button-div"}
                         [:input {:type "button"
                                  :value "New Game"
@@ -85,7 +91,10 @@
                         {:params {:x x
                                   :y y}
                          :handler (fn [response]
-                                    (update-board response))})))
+                                    (update-board response))
+                         :error-handler (fn [{:keys [status status-text]}]
+                                          (log "HTTP " status ":" status-text)
+)})))
     (ev/listen! (dom/by-id (str x "_" y))
                 :contextmenu
                 (fn [event]

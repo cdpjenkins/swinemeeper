@@ -58,7 +58,7 @@
 (defn ajax-new-board [session game-type]
   (let [game-type (if game-type game-type "Easy")
         [width height num-swines] (game-types game-type)
-        board (s/make-board num-swines width height)]
+        board (s/make-board num-swines width height game-type)]
     (ajax-response board session)))
 
 

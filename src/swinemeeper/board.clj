@@ -103,7 +103,7 @@
 ;; :state           <-- {:game-playing, :game-won, :game-lost}
 ;; :remaining-swines
 
-(defn make-board [num-swines width height]
+(defn make-board [num-swines width height type]
   (into
    (apply hash-map
           (interleave
@@ -115,7 +115,8 @@
     :height height
     :num-swines num-swines
     :state :pregame
-    :remaining-swines num-swines}))
+    :remaining-swines num-swines
+    :type type}))
 
 (defn- print-board [board]
   (doseq [y (range (:height board))]
