@@ -17,22 +17,35 @@
    :game-won     "Game Won"
    :game-lost    "Game Lost"})
 
+(defn get-time [board]
+  (if (and (:start-time board)
+           (:current-time board))
+    (str (quot (- (:current-time board)
+                  (:start-time board))
+               1000))
+    0))
+
 (defn- update-board [board]
   (doseq [y (range (:height board))
           x (range (:width board))]
     (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png")))
   (let [header-row (dom/by-id "header-row")
+        timer-row (dom/by-id "timer-row")
         state (:state board)]
     (dom/destroy-children! header-row)
     (dom/append!
-       header-row
-       (condp = state
-         :game-lost (h/html [:center "You lose, sucker!"])
-         :game-won (h/html [:center "You win! Hoo-ray!"])
-         (h/html
-          [:div {:id "swines-remaining"} (:remaining-swines board)]
-          [:div {:id "game-state"}
-           (states-to-strings (:state board))])))))
+     header-row
+     (condp = state
+       :game-lost (h/html [:center "You lose, sucker!"])
+       :game-won (h/html [:center "You win! Hoo-ray!"])
+       (h/html
+        [:div {:id "swines-remaining"} (:remaining-swines board)]
+        [:div {:id "game-state"}
+         (states-to-strings (:state board))])))
+    (dom/destroy-children! timer-row)
+    (dom/append!
+     timer-row
+     (h/html [:center [:div {:id "timer"} (get-time board)]]))))
 
 (defn- make-type-radio [board type id]
   (let [attrs {:type "radio"
@@ -55,6 +68,9 @@
                    [:tr
                     [:td {:colspan (str (:width board))}
                      [:div {:id "header-row"}]]]
+                   [:tr
+                    [:td {:colspan (str (:width board))}
+                     [:div {:id "timer-row"}]]]
                    (for [y (range (:height board))]
                      [:tr
                       (for [x (range (:width board))]

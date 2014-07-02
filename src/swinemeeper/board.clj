@@ -200,11 +200,22 @@
   [board]
   (dissoc board :swines))
 
+(defn update-current-time
+  ([board]
+     (update-current-time board (System/currentTimeMillis)))
+  ([board new-current-time]
+     (assoc board :current-time new-current-time)))
+
+(defn set-start-time [board start-time]
+  (assoc board :start-time start-time))
+
 (defn uncover [board poses]
   (condp = (:state board)
     :game-playing
     (if (empty? poses)
-      (check-for-endgame board)
+      (-> board
+          (update-current-time)
+          (check-for-endgame))
       (let [pos (first poses)
             square (try-square (:swines board) pos)
             new-board (assoc board pos square)
@@ -221,6 +232,7 @@
                                     (:height board)
                                     (:num-swines board)
                                     (first poses)))
+        (set-start-time (System/currentTimeMillis))
         (uncover poses))))
 
 (defn double-dude [board [x y]]

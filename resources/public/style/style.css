@@ -34,6 +34,10 @@ div#game-types {
     float: left;
 }
 
+div#timer-row {
+    /* meh */
+}
+
 div#new-game-button-div {
     float: right;
 }
