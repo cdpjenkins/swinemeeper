@@ -209,6 +209,8 @@
 (defn set-start-time [board start-time]
   (assoc board :start-time start-time))
 
+;; hmm maybe we should pass the current time into uncover in order to keep it
+;; a pure fn... or set the current time elsewhere... hmmm...
 (defn uncover [board poses]
   (condp = (:state board)
     :game-playing

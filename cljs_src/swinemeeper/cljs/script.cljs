@@ -1,14 +1,36 @@
 (ns swinemeeper.cljs.script
-  (:use [domina.xpath :only [xpath]])
+  (:use [domina.xpath :only [xpath]]
+
+)
   (:require [domina :as dom]
             [domina.events :as ev]
             [hiccups.runtime :as hiccupsrt]
             [ajax.core :refer [GET POST]]
-            [swinemeeper.cljs.repl :as smrepl])
+            [swinemeeper.cljs.repl :as smrepl]
+            [goog.Timer]
+            [goog.events :as events])
   (:require-macros [hiccups.core :as h]))
 
 (defn log [& rest]
   (.log js/console (apply str rest)))
+
+;; The current state of the board always lives here
+;; maybe this will make it easy to move to Om at some point...
+(def board-atom (atom nil))
+
+(def timer-atom (atom nil))
+
+(defn stop-timer [timer]
+  (when timer
+    (.stop timer))
+  timer)
+
+(defn start-timer [existing-timer f]
+  (stop-timer existing-timer)
+  (let [new-timer (goog.Timer. 1000)]
+    (.start new-timer)
+    (events/listen new-timer goog.Timer/TICK f)
+    new-timer))
 
 ;; TODO - to cljx
 (def states-to-strings
@@ -25,7 +47,18 @@
                1000))
     0))
 
+(defn inc-time [board]
+  (if-let [time (:current-time board)]
+    (assoc board :current-time (+ time 1000))
+    board))
+
 (defn- update-board [board]
+  (reset! board-atom board)
+  (if (= (:state board) :game-playing)
+    (swap! timer-atom start-timer (fn [e]
+                                    (swap! board-atom inc-time)
+                                    (update-board @board-atom)))
+    (swap! timer-atom stop-timer))
   (doseq [y (range (:height board))
           x (range (:width board))]
     (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png")))
