@@ -1,5 +1,3 @@
-
-
 Making It Look Nice 
 - re-do graphics somehow
 - nice looking HTML - maybe look at bootstrap

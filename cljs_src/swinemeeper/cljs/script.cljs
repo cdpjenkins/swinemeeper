@@ -53,13 +53,11 @@
     board))
 
 (defn- update-board [board]
-  (reset! board-atom board)
   (if (= (:state board) :game-playing)
     ; note: can't call swap! because of side effects... sigh...
     (reset! timer-atom (start-timer @timer-atom
                                     (fn [e]
-                                      (swap! board-atom inc-time)
-                                      (update-board @board-atom))))
+                                      (swap! board-atom inc-time))))
     (reset! timer-atom (stop-timer @timer-atom)))
   (doseq [y (range (:height board))
           x (range (:width board))]
@@ -148,7 +146,7 @@
                         {:params {:x x
                                   :y y}
                          :handler (fn [response]
-                                    (update-board response))
+                                    (reset! board-atom response))
                          :error-handler (fn [{:keys [status status-text]}]
                                           (log "HTTP " status ":" status-text)
 )})))
@@ -159,7 +157,7 @@
                         {:params {:x x
                                   :y y}
                          :handler (fn [response]
-                                    (update-board response))})
+                                    (reset! board-atom response))})
                   (ev/prevent-default event))))
   
   (ev/listen! (dom/by-id "new-game")
@@ -174,7 +172,9 @@
                         {:params {:game-type game-type}
                          :handler (fn [response]
                                     (create-board response))}))))
-  (update-board board))
+  (add-watch board-atom nil (fn [_key _ref old new-board]
+                              (update-board new-board)))
+  (reset! board-atom board))
 
 
 
