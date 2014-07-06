@@ -55,10 +55,12 @@
 (defn- update-board [board]
   (reset! board-atom board)
   (if (= (:state board) :game-playing)
-    (swap! timer-atom start-timer (fn [e]
-                                    (swap! board-atom inc-time)
-                                    (update-board @board-atom)))
-    (swap! timer-atom stop-timer))
+    ; note: can't call swap! because of side effects... sigh...
+    (reset! timer-atom (start-timer @timer-atom
+                                    (fn [e]
+                                      (swap! board-atom inc-time)
+                                      (update-board @board-atom))))
+    (reset! timer-atom (stop-timer @timer-atom)))
   (doseq [y (range (:height board))
           x (range (:width board))]
     (dom/set-attr! (dom/by-id (str x "_" y)) :src (str "images/" (board [x y]) ".png")))
