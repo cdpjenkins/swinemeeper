@@ -1,6 +1,6 @@
 (ns swinemeeper.routes
   (:use [compojure.core]
-        [ring.middleware.edn :only [wrap-edn-params]]
+        [ring.middleware.transit :only [wrap-transit-params wrap-transit-response]]
         [ring.adapter.jetty :only [run-jetty]])
   (:require [swinemeeper.views :as view]
             [compojure.handler :as handler]
@@ -16,13 +16,16 @@
   (GET "" {uri :uri}  (resp/redirect (str uri "/")))
   (GET "/" {session :session } (view/index session))
   (GET "/dump-session" {session :session} (view/dump-session session))
-  (POST "/ajax-new-board" {{game-type :game-type} :params
-                           session :session} (view/ajax-new-board session game-type))
-  (POST "/ajax-click" {{x :x, y :y} :params
-                       session :session} (do
-                                           (view/ajax-click session x y)))
-  (POST "/ajax-right-click" {{x :x, y :y} :params
-                             session :session} (view/ajax-right-click session x y))
+  (wrap-transit-response
+   (POST "/ajax-new-board" {{game-type :game-type} :params
+                            session :session} (view/ajax-new-board session game-type)))
+  (wrap-transit-response
+   (POST "/ajax-click" {{x :x, y :y} :params
+                        session :session} (do
+                                            (view/ajax-click session x y))))
+  (wrap-transit-response
+   (POST "/ajax-right-click" {{x :x, y :y} :params
+                              session :session} (view/ajax-right-click session x y)))
   (-> (route/resources "/")
       (wrap-cache-control))
   (route/not-found "Page not found"))
@@ -30,7 +33,7 @@
 (def app
   (-> main-routes
       (handler/site)
-      (wrap-edn-params)))
+      (wrap-transit-params)))
 
 (defn make-server
   ([]

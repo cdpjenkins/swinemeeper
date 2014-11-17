@@ -5,11 +5,14 @@
                  [hiccup "1.0.5"]
                  [ring/ring-jetty-adapter "1.1.0"]
                  [domina "1.0.2"]
-                 [fogus/ring-edn "0.2.0"]
+                 [ring-transit "0.1.2"]
 
                  [org.clojure/clojurescript "0.0-2227"]
                  [hiccups "0.3.0"]
-                 [cljs-ajax "0.2.4"]]
+                 [cljs-ajax "0.3.3"]
+
+
+]
   :plugins [[lein-cljsbuild "1.0.3"]
             [lein-ring "0.8.11"]
             [cider/cider-nrepl "0.6.0"]]

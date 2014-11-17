@@ -36,7 +36,7 @@
   [board session]
   (-> board
       (sanitise-board)
-      (pr-str)
+;      (pr-str)
       (ring-response/response)
       (assoc :session (assoc session :board board))))
 
