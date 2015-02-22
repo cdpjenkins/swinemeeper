@@ -185,4 +185,5 @@
                        :handler (fn [response]
                                   (create-board response))}))
 
-(set! (.-onload js/window) init)
+(when js/window
+  (set! (.-onload js/window) init))
