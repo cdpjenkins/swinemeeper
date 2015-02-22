@@ -22,12 +22,10 @@
                         :source-paths ["cljs_src"]
                         :jar true
                         :compiler {:output-to "resources/public/js/script.js"
-                                   :optimizations :whitespace
+                                   :optimizations :simple
                                    :pretty-print true}}}
-              :test-commands {"unit-tests" ["rhino"
-                                            "-opt"
-                                            "-1"
-                                            :rhino-runner
+              :test-commands {"unit-tests" ["node"
+                                            :node-runner
                                             "resources/public/js/script.js"]}}
   :min-lein-version "2.0.0"
   :ring {:handler swinemeeper.routes/app
@@ -36,4 +34,3 @@
   :aot :all
   :uberjar-name "swinemeeper.jar"
 )
-

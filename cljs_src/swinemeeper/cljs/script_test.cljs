@@ -1,6 +1,5 @@
 (ns swinemeeper.cljs.script-test
-  (:require [clojure.test :refer [deftest is]]
-            [cemerick.cljs.test]))
+  (:require [cemerick.cljs.test :refer [deftest is]]))
 
 (deftest ston
   (is true))
