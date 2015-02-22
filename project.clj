@@ -11,6 +11,7 @@
                  [hiccups "0.3.0"]
                  [cljs-ajax "0.2.4"]]
   :plugins [[lein-cljsbuild "1.0.3"]
+            [com.cemerick/clojurescript.test "0.3.3"]
             [lein-ring "0.8.11"]
             [cider/cider-nrepl "0.6.0"]]
 
@@ -22,7 +23,12 @@
                         :jar true
                         :compiler {:output-to "resources/public/js/script.js"
                                    :optimizations :whitespace
-                                   :pretty-print true}}}}
+                                   :pretty-print true}}}
+              :test-commands {"unit-tests" ["rhino"
+                                            "-opt"
+                                            "-1"
+                                            :rhino-runner
+                                            "resources/public/js/script.js"]}}
   :min-lein-version "2.0.0"
   :ring {:handler swinemeeper.routes/app
          :uberwar-name "swinemeeper.war"}
