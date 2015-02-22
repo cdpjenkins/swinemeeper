@@ -4,7 +4,7 @@
                  [compojure "1.1.8"]
                  [hiccup "1.0.5"]
                  [ring/ring-jetty-adapter "1.1.0"]
-                 [domina "1.0.2"]
+                 [domina "1.0.3"]
                  [fogus/ring-edn "0.2.0"]
 
                  [org.clojure/clojurescript "0.0-2227"]
@@ -24,13 +24,16 @@
                         :compiler {:output-to "resources/public/js/script.js"
                                    :optimizations :simple
                                    :pretty-print true}}}
-              :test-commands {"unit-tests" ["node"
-                                            :node-runner
-                                            "resources/public/js/script.js"]}}
+              :test-commands {;; "unit-tests" ["node"
+                              ;;               :node-runner
+                              ;;               "resources/public/js/script.js"]
+
+                              "slimer-whitespace" ["xvfb-run" "-a" "slimerjs" :runner
+                                                   "window.literal_js_was_evaluated=true"
+                                                   "resources/public/js/script.js"]}}
   :min-lein-version "2.0.0"
   :ring {:handler swinemeeper.routes/app
          :uberwar-name "swinemeeper.war"}
   :main swinemeeper.routes
   :aot :all
-  :uberjar-name "swinemeeper.jar"
-)
+  :uberjar-name "swinemeeper.jar")
