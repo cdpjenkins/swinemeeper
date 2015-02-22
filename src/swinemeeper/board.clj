@@ -118,7 +118,7 @@
     :remaining-swines num-swines
     :type type}))
 
-(defn- print-board [board]
+(defn print-board [board]
   (doseq [y (range (:height board))]
     (doseq [x (range (:width board))]
       (print (square-str ( board [x y]))))

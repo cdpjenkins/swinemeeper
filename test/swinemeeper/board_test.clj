@@ -31,15 +31,20 @@
       (is (= (:unknown (board [x y])))))))
 
 (deftest test-uncover-bad-2x2
-  (is (= (uncover board-2x2 [[0 0]])
+  (is (= (-> board-2x2
+             (uncover [[0 0]])
+             (dissoc :current-time))
          (-> board-2x2
              (assoc [0 0] :exploding-swine)
              (assoc :state :game-lost)))))
 
 (deftest test-uncover-good-2x2
-  (is (= (uncover board-2x2 [[1 1]])
+  (is (= (-> board-2x2
+             (uncover [[1 1]])
+             (dissoc :current-time))
          (-> board-2x2
-             (assoc [1 1] 1)))))
+             (assoc [1 1] 1)
+             (dissoc :current-time)))))
 
 (deftest test-mark-good-2x2
   (is (= (mark board-2x2 [0 0])
@@ -48,7 +53,9 @@
              (assoc :remaining-swines 0)))))
 
 (deftest test-win-2x2
-  (is (= (uncover board-2x2 [[1 0] [0 1] [1 1]])
+  (is (= (-> board-2x2
+             (uncover [[1 0] [0 1] [1 1]])
+             (dissoc :current-time))
          {[0 0]   :marked
           [0 1]   1
           [1 0]   1
@@ -78,7 +85,9 @@
   (let [board (-> board-2x2
                   (uncover [[1 0]])
                   (mark [0 0]))]
-    (is (= (double-dude board [1 0])
+    (is (= (-> board
+               (double-dude [1 0])
+               (dissoc :current-time))
          {[0 0]   :marked
           [0 1]   1
           [1 0]   1
@@ -90,3 +99,4 @@
           :remaining-swines 0
           :swines (:swines board-2x2)
           :type "Custom"}))))
+
