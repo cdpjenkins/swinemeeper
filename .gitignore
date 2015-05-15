@@ -11,4 +11,4 @@ target/
 repl/
 out/
 resources/public/js/script.js
-
+/node_modules
