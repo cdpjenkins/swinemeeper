@@ -39,8 +39,11 @@
      (let [port port]
        (run-jetty (var app) {:port port :join? false}))))
 
-(defn -main [port ]
-  (make-server (Integer/parseInt port)))
+(defn -main
+  ([]
+   (make-server (Integer/parseInt (System/getenv "VCAP_APP_PORT"))))
+  ([port]
+   (make-server (Integer/parseInt port))))
 
 (comment
   (def s (make-server))
