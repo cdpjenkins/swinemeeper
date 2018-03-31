@@ -6,6 +6,7 @@
             [domina.events :as ev]
             [hiccups.runtime :as hiccupsrt]
             [ajax.core :refer [GET POST]]
+            [ajax.edn :refer [edn-request-format edn-response-format]]
             [swinemeeper.cljs.repl :as smrepl]
             [goog.Timer]
             [goog.events :as events])
@@ -95,6 +96,9 @@
 (defn- create-board [board]
   (let [board-div (dom/by-id :board)]
     (dom/destroy-children! board-div)
+    (log (str "create-board: " board))
+    (log (str "height: " (:height board)))
+    (log (str "width: " (:width board)))
     (dom/append! board-div
                  (h/html
                   [:table
@@ -142,14 +146,14 @@
     (ev/listen! (dom/by-id (str x "_" y))
                 :click
                 (fn [event]
+                  (log (str [x y]))
                   (POST "ajax-click"
                         {:params {:x x
                                   :y y}
                          :handler (fn [response]
                                     (reset! board-atom response))
                          :error-handler (fn [{:keys [status status-text]}]
-                                          (log "HTTP " status ":" status-text)
-)})))
+                                          (log "HTTP " status ":" status-text))})))
     (ev/listen! (dom/by-id (str x "_" y))
                 :contextmenu
                 (fn [event]

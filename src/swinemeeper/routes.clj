@@ -1,6 +1,7 @@
 (ns swinemeeper.routes
   (:use [compojure.core]
-        [ring.middleware.edn :only [wrap-edn-params]]
+        [ring.middleware.transit :only [wrap-transit-response]]
+        [ring.middleware.transit :only [wrap-transit-params]]
         [ring.adapter.jetty :only [run-jetty]])
   (:require [swinemeeper.views :as view]
             [compojure.handler :as handler]
@@ -13,7 +14,7 @@
     (resp/header (handler req) "Cache-Control" "max-age=3600" )))
 
 (defroutes main-routes
-  (GET "" {uri :uri}  (resp/redirect (str uri "/")))
+  ;;(GET "" {uri :uri}  (resp/redirect (str uri "/")))
   (GET "/" {session :session } (view/index session))
   (GET "/dump-session" {session :session} (view/dump-session session))
   (POST "/ajax-new-board" {{game-type :game-type} :params
@@ -30,7 +31,10 @@
 (def app
   (-> main-routes
       (handler/site)
-      (wrap-edn-params)))
+      ;;(wrap-edn-params)
+      (wrap-transit-params)
+      (wrap-transit-response)
+     ))
 
 (defn make-server
   ([]

@@ -1,19 +1,19 @@
 (defproject swinemeeper "0.11.2-SNAPSHOT"
-  :dependencies [[org.clojure/clojure "1.5.1"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojure-contrib "1.2.0"]
-                 [compojure "1.1.8"]
+                 [compojure "1.6.0"]
                  [hiccup "1.0.5"]
-                 [ring/ring-jetty-adapter "1.1.0"]
+                 [ring/ring-jetty-adapter "1.6.3"]
                  [domina "1.0.3"]
-                 [fogus/ring-edn "0.2.0"]
+                 [ring-transit "0.1.6"]
 
-                 [org.clojure/clojurescript "0.0-2227"]
+                 [org.clojure/clojurescript "1.10.238"]
                  [hiccups "0.3.0"]
-                 [cljs-ajax "0.2.4"]]
-  :plugins [[lein-cljsbuild "1.0.3"]
+                 [cljs-ajax "0.7.3"]]
+  :plugins [[lein-cljsbuild "1.1.7"]
             [com.cemerick/clojurescript.test "0.3.3"]
-            [lein-ring "0.8.11"]
-            [cider/cider-nrepl "0.6.0"]]
+            [lein-ring "0.12.4"]
+            [cider/cider-nrepl "0.16.0"]]
 
   :source-paths ["src"]
   :hooks [leiningen.cljsbuild]
@@ -23,14 +23,7 @@
                         :jar true
                         :compiler {:output-to "resources/public/js/script.js"
                                    :optimizations :simple
-                                   :pretty-print true}}}
-              :test-commands {;; "unit-tests" ["node"
-                              ;;               :node-runner
-                              ;;               "resources/public/js/script.js"]
-
-                              "slimer-whitespace" ["xvfb-run" "-a" "slimerjs" :runner
-                                                   "window.literal_js_was_evaluated=true"
-                                                   "resources/public/js/script.js"]}}
+                                   :pretty-print true}}}}
   :min-lein-version "2.0.0"
   :ring {:handler swinemeeper.routes/app
          :uberwar-name "swinemeeper.war"}
