@@ -70,7 +70,7 @@
     (dom/append!
      header-row
      (condp = state
-       :game-lost (h/html [:center "You lose, sucker!"])
+       :game-lost (h/html [:center "You lose. Better luck next time!"])
        :game-won (h/html [:center "You win! Hoo-ray!"])
        (h/html
         [:div {:id "swines-remaining"} (:remaining-swines board)]
