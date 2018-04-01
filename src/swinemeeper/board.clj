@@ -119,6 +119,7 @@
     :type type}))
 
 (defn print-board [board]
+  (println (:state board))
   (doseq [y (range (:height board))]
     (doseq [x (range (:width board))]
       (print (square-str ( board [x y]))))
@@ -189,8 +190,11 @@
   "Checks for the end of the game and updates game state."
   (let [new-state (new-game-state board)]
     (condp = new-state
-      :game-won (assoc (fully-reveal-board-on-win board)
-                  :state new-state)
+      :game-won (do
+                  (let [new-board (assoc (fully-reveal-board-on-win board)
+                                         :state new-state)]
+                    (print-board new-board)
+                    new-board))
       :game-lost (assoc (fully-reveal-board-on-lose board)
                    :state new-state)
       (assoc board :state new-state))))
