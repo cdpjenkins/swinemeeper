@@ -6,6 +6,8 @@
                  [ring/ring-jetty-adapter "1.6.3"]
                  [domina "1.0.3"]
                  [ring-transit "0.1.6"]
+                 [etaoin "0.2.8-SNAPSHOT"]
+
 
                  [org.clojure/clojurescript "1.10.238"]
                  [hiccups "0.3.0"]
