@@ -14,7 +14,6 @@
     (resp/header (handler req) "Cache-Control" "max-age=3600" )))
 
 (defroutes main-routes
-  ;;(GET "" {uri :uri}  (resp/redirect (str uri "/")))
   (GET "/" {session :session } (view/index session))
   (GET "/dump-session" {session :session} (view/dump-session session))
   (POST "/ajax-new-board" {{game-type :game-type} :params
