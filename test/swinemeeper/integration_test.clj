@@ -28,16 +28,8 @@
 (deftest smoke-test
   "Ensure that the game can at least start"
   (go *driver* "http://localhost:8000")
-  (wait 1)
-  (is (=
-       (get-element-text *driver* {:id "game-state"})
-       "Pregame"))
+  (wait-visible *driver* {:id "game-state" :fn/text "Pregame"})
   (click *driver* {:id "5_5"})
-  (wait 2)
-  (is (=
-       (get-element-text *driver* {:id "game-state"})
-       "Game Playing"))
-  (wait 1)
-  (is (=
-       (get-element-text *driver* {:id "swines-remaining"})
-       "10")))
+  (wait-visible *driver* {:id "game-state" :fn/text "Game Playing"})
+  (wait-visible *driver* {:id "swines-remaining" :fn/text "10"})
+  (is true))

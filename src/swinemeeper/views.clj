@@ -59,7 +59,6 @@
         [width height num-swines] (game-types game-type)
         board (s/make-board num-swines width height game-type)]
     (println "ajax-new-board: " game-type)
-    (println "board: " board)
     (ajax-response board session)))
 
 
