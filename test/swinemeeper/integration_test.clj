@@ -29,7 +29,10 @@
   "Ensure that the game can at least start"
   (go *driver* "http://localhost:8000")
   (wait-visible *driver* {:id "game-state" :fn/text "Pregame"})
+  (wait 5)
   (click *driver* {:id "5_5"})
   (wait-visible *driver* {:id "game-state" :fn/text "Game Playing"})
   (wait-visible *driver* {:id "swines-remaining" :fn/text "10"})
+  (wait 5)
   (is true))
+
